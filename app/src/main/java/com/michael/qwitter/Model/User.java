@@ -4,6 +4,7 @@ public class User
 {
     private String mUserAlias;
     private String mPassword;
+    private String mAuthToken;
 
     public User(String userAlias, String password)
     {
@@ -29,5 +30,15 @@ public class User
     public void setPassword(String password)
     {
         this.mPassword = password;
+    }
+
+    public String getAuthToken()
+    {
+        return mAuthToken;
+    }
+
+    public void setAuthToken(String mAuthToken)
+    {
+        this.mAuthToken = mAuthToken;
     }
 }
