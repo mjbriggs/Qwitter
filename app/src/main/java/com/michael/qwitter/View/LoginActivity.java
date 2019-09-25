@@ -10,7 +10,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.michael.qwitter.Presenter.LoginPresenter;
-import com.michael.qwitter.Presenter.LoginPresenterInterface;
+import com.michael.qwitter.Presenter.RegistrationInterface;
 import com.michael.qwitter.R;
 import com.michael.qwitter.View.ViewInterfaces.UserRegistration;
 
@@ -20,7 +20,7 @@ public class LoginActivity extends AppCompatActivity implements UserRegistration
     private Button mSignUpButton;
     private EditText mUserField;
     private EditText mPasswordField;
-    private LoginPresenterInterface mLoginPresenter;
+    private RegistrationInterface mLoginPresenter;
     private String mUserAlias;
     private String mPassword;
 
@@ -45,8 +45,6 @@ public class LoginActivity extends AppCompatActivity implements UserRegistration
                 grabFields();
                 if(validFields())
                 {
-                    mUserField.setText("");
-                    mPasswordField.setText("");
                     String userToken = mLoginPresenter.validateUser(mUserAlias, mPassword);
 
                     if(userToken.length() > 0)
@@ -56,8 +54,21 @@ public class LoginActivity extends AppCompatActivity implements UserRegistration
                         Toast toast = Toast.makeText(LoginActivity.this, toastMessage, Toast.LENGTH_SHORT);
                         toast.show();
 
-                        Intent intent = new Intent(LoginActivity.this, RecyclerActivity.class);
-                        startActivity(intent);
+                        clearFields();
+
+
+                        if(mLoginPresenter.isUserCreated(mUserAlias))
+                        {
+                            Intent intent = new Intent(LoginActivity.this, RecyclerActivity.class);
+                            startActivity(intent);
+                        }
+                        else
+                        {
+                            Intent intent = new Intent(LoginActivity.this, NewUserInfoActivity.class);
+                            intent.putExtra("USER_NAME", mUserAlias);
+                            startActivity(intent);
+                        }
+
                     }
                     else
                     {
@@ -76,10 +87,19 @@ public class LoginActivity extends AppCompatActivity implements UserRegistration
             @Override
             public void onClick(View v)
             {
+                clearFields();
+                
                 Intent intent = new Intent(LoginActivity.this, SignUpActivity.class);
                 startActivity(intent);
             }
         });
+    }
+
+    @Override
+    public void clearFields()
+    {
+        mUserField.setText("");
+        mPasswordField.setText("");
     }
 
     @Override

@@ -4,4 +4,5 @@ public interface UserRegistration
 {
     void grabFields();
     boolean validFields();
+    void clearFields();
 }

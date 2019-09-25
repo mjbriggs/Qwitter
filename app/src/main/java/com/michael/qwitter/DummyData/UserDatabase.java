@@ -25,6 +25,7 @@ public class UserDatabase implements DummyUserDatabase
         mUsers = new HashMap<>();
     }
 
+    @Override
     public boolean userExists(String username)
     {
         System.out.println("Checking if user " + username + " exists");

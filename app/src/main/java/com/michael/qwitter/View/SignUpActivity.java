@@ -9,19 +9,20 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.michael.qwitter.Presenter.LoginPresenter;
-import com.michael.qwitter.Presenter.LoginPresenterInterface;
+import com.michael.qwitter.Presenter.RegistrationInterface;
+import com.michael.qwitter.Presenter.SignUpPresenter;
 import com.michael.qwitter.R;
 import com.michael.qwitter.View.ViewInterfaces.UserRegistration;
 
 public class SignUpActivity extends AppCompatActivity implements UserRegistration
 {
 
-    private Button mLoginButton;
     private Button mSignUpButton;
+    private EditText mEmailField;
     private EditText mUserField;
     private EditText mPasswordField;
-    private LoginPresenterInterface mLoginPresenter;
+    private RegistrationInterface mSignUpPresenter;
+    private String mEmail;
     private String mUserAlias;
     private String mPassword;
 
@@ -29,16 +30,15 @@ public class SignUpActivity extends AppCompatActivity implements UserRegistratio
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
+        setContentView(R.layout.activity_sign_up);
+
+        mEmailField = findViewById(R.id.email_field);
 
         mUserField = findViewById(R.id.user_field);
 
         mPasswordField = findViewById(R.id.password_field);
 
-        mLoginPresenter = new LoginPresenter();
-
-        mLoginButton = findViewById(R.id.login_button);
-        mLoginButton.setVisibility(View.GONE);
+        mSignUpPresenter = new SignUpPresenter();
 
         mSignUpButton = findViewById(R.id.sign_up_button);
         mSignUpButton.setOnClickListener(new View.OnClickListener()
@@ -49,7 +49,7 @@ public class SignUpActivity extends AppCompatActivity implements UserRegistratio
                 grabFields();
                 if(validFields())
                 {
-                    if(mLoginPresenter.validateUser(mUserAlias, mPassword).length() > 0)
+                    if(mSignUpPresenter.validateUser(mUserAlias, mPassword).length() > 0)
                     {
                         CharSequence toastMessage = mUserAlias + " already exists";
 
@@ -57,21 +57,23 @@ public class SignUpActivity extends AppCompatActivity implements UserRegistratio
                         toast.show();
                         return;
                     }
-                    mLoginPresenter.addUser(mUserAlias, mPassword);
+                    mSignUpPresenter.addUser(mUserAlias, mPassword);
 
-                    mUserField.setText("");
-                    mPasswordField.setText("");
-                    String userToken = mLoginPresenter.validateUser(mUserAlias, mPassword);
+                    String userToken = mSignUpPresenter.validateUser(mUserAlias, mPassword);
 
                     if(userToken.length() > 0)
                     {
                         CharSequence toastMessage = mUserAlias + " has logged in";
 
+                        clearFields();
+
                         Toast toast = Toast.makeText(SignUpActivity.this, toastMessage, Toast.LENGTH_SHORT);
                         toast.show();
 
-                        Intent intent = new Intent(SignUpActivity.this, RecyclerActivity.class);
+                        Intent intent = new Intent(SignUpActivity.this, NewUserInfoActivity.class);
+                        intent.putExtra("USER_NAME", mUserAlias);
                         startActivity(intent);
+                        finish();
                     }
                     else
                     {
@@ -88,8 +90,17 @@ public class SignUpActivity extends AppCompatActivity implements UserRegistratio
     }
 
     @Override
+    public void clearFields()
+    {
+        mUserField.setText("");
+        mPasswordField.setText("");
+        mEmailField.setText("");
+    }
+
+    @Override
     public void grabFields()
     {
+        mEmail = mEmailField.getText().toString();
         mUserAlias = mUserField.getText().toString();
         mPassword = mPasswordField.getText().toString();
     }
@@ -97,12 +108,17 @@ public class SignUpActivity extends AppCompatActivity implements UserRegistratio
     @Override
     public boolean validFields()
     {
-        if(mUserAlias == null || mPassword == null)
+        if(mUserAlias == null || mPassword == null || mEmail == null)
         {
             return false;
         }
 
-        if(mUserAlias.length() == 0 || mPassword.length() == 0)
+        if(mUserAlias.length() == 0 || mPassword.length() == 0 || mEmail.length() == 0)
+        {
+            return false;
+        }
+
+        if(!mEmail.contains("@"))
         {
             return false;
         }

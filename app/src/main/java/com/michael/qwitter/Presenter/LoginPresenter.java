@@ -3,43 +3,24 @@ package com.michael.qwitter.Presenter;
 import com.michael.qwitter.DummyData.UserDatabase;
 import com.michael.qwitter.Model.User;
 
-public class LoginPresenter implements LoginPresenterInterface
+public class LoginPresenter extends RegistrationPresenter
 {
-    private User mUser;
     private UserDatabase mUserDatabase;
 
     public LoginPresenter()
     {
-        mUser = new User("", "");
         mUserDatabase = UserDatabase.getInstance();
     }
 
     @Override
-    public void addUser(String username, String password)
+    public boolean isUserCreated(String username)
     {
-        System.out.println("presenter add of user");
-        mUser.setUserAlias(username);
-        mUser.setPassword(password);
-        // TODO Add user to database
-        mUser.setAuthToken(mUserDatabase.generateAuthToken());
-        mUserDatabase.addUser(mUser);
-    }
+        User user = mUserDatabase.getUser(username);
 
-    @Override
-    public String validateUser(String username, String password)
-    {
-        if(mUserDatabase.userExists(username))
-        {
-            User potentialUser = mUserDatabase.getUser(username);
-            if(potentialUser.getPassword().equals(password))
-            {
-                potentialUser.setAuthToken(mUserDatabase.generateAuthToken());
-                mUserDatabase.updateUser(username, potentialUser);
-                return potentialUser.getAuthToken();
-            }
-        }
+        boolean userCreated = user.getmFirstName() != null && user.getmFirstName().length() > 0;
+        userCreated &= user.getmLastName() != null && user.getmLastName().length() > 0;
 
-        return "";
+        return userCreated;
     }
 
 }

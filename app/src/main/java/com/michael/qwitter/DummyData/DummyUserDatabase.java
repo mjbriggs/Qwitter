@@ -8,5 +8,6 @@ public interface DummyUserDatabase
     void addUser(String username, String password);
     void addUser(User user);
     String generateAuthToken();
+    boolean userExists(String username);
     boolean validateAuthToken(String username, String authToken);
 }
