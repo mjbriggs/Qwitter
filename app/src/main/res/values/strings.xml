@@ -5,4 +5,10 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="alias_hint">@Alias</string>
     <string name="email_hint">example@email.com</string>
+    <string name="title_activity_home">HomeActivity</string>
+    <string name="feed_text">Feed</string>
+    <string name="story_text">Story</string>
+    <string name="followers_text">Followers</string>
+    <string name="following_text">Following</string>
+
 </resources>

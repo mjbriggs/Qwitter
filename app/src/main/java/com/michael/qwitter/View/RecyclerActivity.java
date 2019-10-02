@@ -13,11 +13,9 @@ public class RecyclerActivity extends AppCompatActivity implements RecyclerFragm
     private RecyclerView recyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager layoutManager;
-    private String[] myDataset;
 
     public RecyclerActivity()
     {
-        myDataset = new String[] {"1", "2", "3"};
     }
 
     @Override

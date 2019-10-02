@@ -1,5 +1,6 @@
 package com.michael.qwitter.DummyData;
 
+import com.michael.qwitter.Model.Image;
 import com.michael.qwitter.Model.User;
 
 import java.util.HashMap;
@@ -23,6 +24,11 @@ public class UserDatabase implements DummyUserDatabase
     private  UserDatabase()
     {
         mUsers = new HashMap<>();
+        User user = new User("user", "password");
+        user.setFirstName("us");
+        user.setLastName("er");
+        user.setProfilePicture(new Image("us"));
+        addUser(user);
     }
 
     @Override
@@ -57,7 +63,7 @@ public class UserDatabase implements DummyUserDatabase
         }
     }
 
-    public  void updateUser(String username, User updatedUser)
+    public void updateUser(String username, User updatedUser)
     {
         mUsers.put(username, updatedUser);
     }
@@ -95,5 +101,10 @@ public class UserDatabase implements DummyUserDatabase
             sb.append(ALPHABET.charAt(r.nextInt(ALPHABET_LENGTH)));
         }
         return sb.toString();
+    }
+
+    public Map<String, User> getUsers()
+    {
+        return mUsers;
     }
 }

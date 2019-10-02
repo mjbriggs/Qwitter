@@ -1,6 +1,8 @@
 package com.michael.qwitter.View;
 
+import android.graphics.Color;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
@@ -38,6 +40,8 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
         // create a new view
         TextView v = (TextView) LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.my_text_view, parent, false);
+        v.setGravity(View.TEXT_ALIGNMENT_CENTER);
+        v.setTextColor(Color.BLACK);
 
         RecyclerHolder vh = new RecyclerHolder(v);
         return vh;

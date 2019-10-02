@@ -35,19 +35,17 @@ public class RecyclerFragment extends Fragment
     public RecyclerFragment()
     {
         // Required empty public constructor
-        myDataset = new String[] {"1", "2", "3"};
+       // myDataset = new String[] {"1", "2", "3"};
     }
 
     /**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
      * @return A new instance of fragment RecyclerFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static RecyclerFragment newInstance(String param1, String param2)
+    public static RecyclerFragment newInstance()
     {
         RecyclerFragment fragment = new RecyclerFragment();
         Bundle args = new Bundle();

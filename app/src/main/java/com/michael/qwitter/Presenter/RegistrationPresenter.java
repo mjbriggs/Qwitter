@@ -1,5 +1,8 @@
 package com.michael.qwitter.Presenter;
 
+import android.content.Context;
+import android.graphics.Bitmap;
+
 import com.michael.qwitter.DummyData.UserDatabase;
 import com.michael.qwitter.Model.User;
 
@@ -49,4 +52,6 @@ public class RegistrationPresenter implements RegistrationInterface
     {
         return username != null;
     }
+    @Override
+    public void saveImage(String username, Context context, Bitmap bitmap) {}
 }

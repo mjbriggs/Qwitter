@@ -11,7 +11,10 @@ import java.io.File;
 //Every image is associated with a user
 public class Image implements Attachment
 {
-    String mUsername;
+    private static final int REQUEST_PHOTO= 2;
+    private String mUsername;
+    private String mImagePath;
+
 
     public Image(String mUsername)
     {
@@ -72,5 +75,15 @@ public class Image implements Attachment
 
         // Read in and create final bitmap
         return BitmapFactory.decodeFile(path, options);
+    }
+
+    public String getImagePath()
+    {
+        return mImagePath;
+    }
+
+    public void setImagePath(String mImagePath)
+    {
+        this.mImagePath = mImagePath;
     }
 }

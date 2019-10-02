@@ -45,6 +45,7 @@ public class LoginActivity extends AppCompatActivity implements UserRegistration
                 grabFields();
                 if(validFields())
                 {
+                    //creates authtoken if user exists
                     String userToken = mLoginPresenter.validateUser(mUserAlias, mPassword);
 
                     if(userToken.length() > 0)
@@ -59,7 +60,8 @@ public class LoginActivity extends AppCompatActivity implements UserRegistration
 
                         if(mLoginPresenter.isUserCreated(mUserAlias))
                         {
-                            Intent intent = new Intent(LoginActivity.this, RecyclerActivity.class);
+                            Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+                            intent.putExtra("USER_NAME", mUserAlias);
                             startActivity(intent);
                         }
                         else

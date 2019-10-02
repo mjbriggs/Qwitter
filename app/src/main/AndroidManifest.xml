@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.michael.qwitter">
 
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="18" />
+
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
@@ -13,7 +17,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".View.NewUserInfoActivity"></activity>
+        <activity android:name=".View.CreateStatusActivity"></activity>
+        <activity
+            android:name=".View.HomeActivity"
+            android:label="@string/title_activity_home"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".View.NewUserInfoActivity" />
         <activity android:name=".View.SignUpActivity" />
         <activity android:name=".View.MainActivity">
             <intent-filter>
@@ -24,6 +33,7 @@
         </activity>
         <activity android:name=".View.LoginActivity" />
         <activity android:name=".View.RecyclerActivity" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="com.michael.qwitter.fileprovider"

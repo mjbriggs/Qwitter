@@ -1,10 +1,8 @@
 package com.michael.qwitter.View;
 
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
-import android.net.Uri;
+import android.graphics.Matrix;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.View;
@@ -15,16 +13,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.FileProvider;
 
-import com.michael.qwitter.Model.Image;
 import com.michael.qwitter.Presenter.NewUserInfoPresenter;
 import com.michael.qwitter.Presenter.RegistrationInterface;
 import com.michael.qwitter.R;
 import com.michael.qwitter.View.ViewInterfaces.UserRegistration;
-
-import java.io.File;
-import java.util.List;
 
 public class NewUserInfoActivity extends AppCompatActivity implements UserRegistration
 {
@@ -38,9 +31,8 @@ public class NewUserInfoActivity extends AppCompatActivity implements UserRegist
     private String mLastName;
     private Button mCreateButton;
     private String mUserAlias;
+    private Bitmap mBitmap;
 
-    private File mProfilePhotoFile;
-    private Image mProfilePhotoImage;
     private static final int REQUEST_PHOTO= 2;
 
     @Override
@@ -51,17 +43,10 @@ public class NewUserInfoActivity extends AppCompatActivity implements UserRegist
 
         mUserAlias = getIntent().getExtras().getString("USER_NAME");
 
-        mProfilePhotoImage = new Image(mUserAlias);
-        mProfilePhotoFile = mProfilePhotoImage.getFile(NewUserInfoActivity.this, "profile_picture");
 
         mNewUserInfoPresenter = new NewUserInfoPresenter();
 
         mProfilePicture = findViewById(R.id.create_profile_picture);
-
-        final Intent captureImage = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-
-        final boolean canTakePhoto = mProfilePhotoFile != null &&
-                captureImage.resolveActivity(getPackageManager()) != null;
 
         mEditPicture = findViewById(R.id.edit_picture_view);
         mEditPicture.setOnClickListener(new View.OnClickListener()
@@ -69,30 +54,18 @@ public class NewUserInfoActivity extends AppCompatActivity implements UserRegist
             @Override
             public void onClick(View v)
             {
-                if(canTakePhoto)
+
+                try
                 {
-                    Uri uri = FileProvider.getUriForFile(NewUserInfoActivity.this,
-                            "com.michael.qwitter.fileprovider",
-                            mProfilePhotoFile);
-                    captureImage.putExtra(MediaStore.EXTRA_OUTPUT, uri);
-
-                    List<ResolveInfo> cameraActivities = NewUserInfoActivity.this
-                            .getPackageManager().queryIntentActivities(captureImage, PackageManager.MATCH_DEFAULT_ONLY);
-
-                    for (ResolveInfo activity : cameraActivities) {
-                        NewUserInfoActivity.this.grantUriPermission(activity.activityInfo.packageName,
-                                uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                    }
-
-                    startActivityForResult(captureImage, REQUEST_PHOTO);
+                    dispatchTakePictureIntent();
 
                     Toast toast = Toast.makeText(NewUserInfoActivity.this, "Taking photo", Toast.LENGTH_SHORT);
                     toast.show();
 
-                    //updateProfilePicture();
                 }
-                else
+                catch (Exception ex)
                 {
+                    ex.printStackTrace();
                     Toast toast = Toast.makeText(NewUserInfoActivity.this, "Cannot take photo with device", Toast.LENGTH_SHORT);
                     toast.show();
                 }
@@ -113,14 +86,23 @@ public class NewUserInfoActivity extends AppCompatActivity implements UserRegist
                 grabFields();
                 if(validFields())
                 {
-                    mNewUserInfoPresenter.updateUserInfo(mUserAlias, mFirstName, mLastName);
+                    try
+                    {
+                        mNewUserInfoPresenter.updateUserInfo(mUserAlias, mFirstName, mLastName);
+                        Toast toast = Toast.makeText(NewUserInfoActivity.this, "Creating new user " + mFirstName + " " + mLastName, Toast.LENGTH_SHORT);
+                        toast.show();
 
-                    Toast toast = Toast.makeText(NewUserInfoActivity.this, "Creating new user " + mFirstName + " " + mLastName, Toast.LENGTH_SHORT);
-                    toast.show();
-
-                    Intent intent = new Intent(NewUserInfoActivity.this, RecyclerActivity.class);
-                    startActivity(intent);
-                    finish();
+                        Intent intent = new Intent(NewUserInfoActivity.this, HomeActivity.class);
+                        intent.putExtra("USER_NAME", mUserAlias);
+                        startActivity(intent);
+                        finish();
+                    }
+                    catch (NullPointerException ex)
+                    {
+                        Toast toast = Toast.makeText(NewUserInfoActivity.this, "Cannot create user, check if fields are valid", Toast.LENGTH_SHORT);
+                        toast.show();
+                        ex.printStackTrace();
+                    }
                 }
 
             }
@@ -128,53 +110,38 @@ public class NewUserInfoActivity extends AppCompatActivity implements UserRegist
 
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data)
+    private void dispatchTakePictureIntent()
     {
-        if(requestCode == REQUEST_PHOTO)
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null)
         {
-            if(mProfilePhotoFile == null || data == null || NewUserInfoActivity.this == null)
-            {
-                System.out.println("Camera permissions already closed");
-            }
-            else
-            {
-                try
-                {
-                    System.out.println("closing camera permissions");
-                    Uri uri = FileProvider.getUriForFile(NewUserInfoActivity.this,
-                            "com.bignerdranch.android.criminalintent.fileprovider",
-                            mProfilePhotoFile);
-
-                    NewUserInfoActivity.this.revokeUriPermission(uri,
-                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-
-                    updateProfilePicture();
-                }
-                catch(NullPointerException ex)
-                {
-                    ex.printStackTrace();
-                    mProfilePhotoFile = null;
-                    updateProfilePicture();
-                }
-
-            }
+            startActivityForResult(takePictureIntent, REQUEST_PHOTO);
         }
     }
 
-    private void updateProfilePicture()
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data)
     {
-        if (mProfilePhotoFile == null || !mProfilePhotoFile.exists())
+        if (requestCode == REQUEST_PHOTO && resultCode == RESULT_OK)
         {
-            System.out.println("setting profilePicture imageDrawable to null");
-            mProfilePicture.setImageDrawable(null);
+            Bundle extras = data.getExtras();
+
+            Bitmap sourceBitmap = (Bitmap) extras.get("data");
+
+            Matrix matrix = new Matrix();
+
+            //matrix.postRotate(270);  //rotation for normal phones
+            matrix.postRotate(90);  //rotation for emulator
+
+
+            mBitmap = Bitmap.createBitmap(sourceBitmap, 0, 0, sourceBitmap.getWidth(), sourceBitmap.getHeight(), matrix, true);
+
+            sourceBitmap.recycle();
+
+            mProfilePicture.setImageBitmap(mBitmap);
         }
-        else
-        {
-            Bitmap bitmap = mProfilePhotoImage.getScaledBitmap(
-                    mProfilePhotoFile.getPath(), NewUserInfoActivity.this);
-            mProfilePicture.setImageBitmap(bitmap);
-        }
+
     }
 
     @Override
@@ -190,7 +157,7 @@ public class NewUserInfoActivity extends AppCompatActivity implements UserRegist
     {
         mFirstName = mFirstNameField.getText().toString();
         mLastName = mLastNameField.getText().toString();
-        //TODO set attachment to image field contents
+        mNewUserInfoPresenter.saveImage(mUserAlias, getApplicationContext(), mBitmap);
     }
 
     @Override

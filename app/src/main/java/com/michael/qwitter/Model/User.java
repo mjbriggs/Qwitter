@@ -1,5 +1,7 @@
 package com.michael.qwitter.Model;
 
+import java.util.ArrayList;
+
 public class User
 {
     private String mUserAlias;
@@ -8,15 +10,17 @@ public class User
     private String mUserEmail;
     private String mFirstName;
     private String mLastName;
+    private Image mProfilePicture;
+    private ArrayList<Status> mStatuses;
     //TODO has attachment
     //TODO has story
-    //TODO has statues
     //TODO has followers
     //TODO has followees
     //TODO has feed
 
     public User(String userAlias, String password)
     {
+        mStatuses = new ArrayList<>();
         mUserAlias = userAlias;
         mPassword = password;
     }
@@ -61,24 +65,49 @@ public class User
         this.mUserEmail = mUserEmail;
     }
 
-    public String getmFirstName()
+    public String getFirstName()
     {
         return mFirstName;
     }
 
-    public void setmFirstName(String mFirstName)
+    public void setFirstName(String mFirstName)
     {
         this.mFirstName = mFirstName;
     }
 
-    public String getmLastName()
+    public String getLastName()
     {
         return mLastName;
     }
 
-    public void setmLastName(String mLastName)
+    public void setLastName(String mLastName)
     {
         this.mLastName = mLastName;
+    }
+
+    public Image getProfilePicture()
+    {
+        return mProfilePicture;
+    }
+
+    public void setProfilePicture(Image mProfilePicture)
+    {
+        this.mProfilePicture = mProfilePicture;
+    }
+
+    public ArrayList<Status> getStatuses()
+    {
+        return mStatuses;
+    }
+
+    public void setStatuses(ArrayList<Status> mStatuses)
+    {
+        this.mStatuses = mStatuses;
+    }
+
+    public void addStatus(Status status)
+    {
+        mStatuses.add(status);
     }
 
     @Override
