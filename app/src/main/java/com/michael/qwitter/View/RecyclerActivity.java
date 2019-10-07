@@ -24,7 +24,6 @@ public class RecyclerActivity extends AppCompatActivity implements RecyclerFragm
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.recycler_view);
-
     }
 
     public void onFragmentInteraction(int position)

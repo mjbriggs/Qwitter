@@ -73,6 +73,7 @@ public class CreateStatusActivity extends AppCompatActivity
 
                 Intent intent = new Intent(CreateStatusActivity.this, HomeActivity.class);
                 intent.putExtra("USER_NAME", mUserAlias);
+                intent.putExtra("PROFILE", false);
                 startActivity(intent);
                 finish();
             }
@@ -86,6 +87,7 @@ public class CreateStatusActivity extends AppCompatActivity
             {
                 Intent intent = new Intent(CreateStatusActivity.this, HomeActivity.class);
                 intent.putExtra("USER_NAME", mUserAlias);
+                intent.putExtra("PROFILE", false);
                 startActivity(intent);
                 finish();
             }

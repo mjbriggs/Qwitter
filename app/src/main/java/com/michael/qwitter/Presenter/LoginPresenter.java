@@ -17,6 +17,8 @@ public class LoginPresenter extends RegistrationPresenter
     {
         User user = mUserDatabase.getUser(username);
 
+        System.out.println(user.toString());
+
         boolean userCreated = user.getFirstName() != null && user.getFirstName().length() > 0;
         userCreated &= user.getLastName() != null && user.getLastName().length() > 0;
 

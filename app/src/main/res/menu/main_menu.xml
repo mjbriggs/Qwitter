@@ -3,11 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main_menu">
     <item
-        android:title="profile"
+        android:id="@+id/menu_search_button"
+        android:title="Search"
         />
     <item
-        android:id="@+id/search_bar"
+        android:id="@+id/logout_button"
         android:title="Logout"
-        app:showAsAction="always"
         />
 </menu>

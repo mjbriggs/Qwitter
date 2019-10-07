@@ -6,6 +6,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
 
+import androidx.annotation.Nullable;
+
 import java.io.File;
 
 //Every image is associated with a user
@@ -85,5 +87,34 @@ public class Image implements Attachment
     public void setImagePath(String mImagePath)
     {
         this.mImagePath = mImagePath;
+    }
+
+    @Override
+    public Attachment clone()
+    {
+        Attachment a = new Image(this.mUsername);
+
+        return a;
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj)
+    {
+        if(obj == null)
+        {
+            return false;
+        }
+        if(obj.getClass() != this.getClass())
+            return false;
+
+        Image i = (Image) obj;
+
+        if(i.mUsername.compareTo(this.mUsername) != 0)
+            return false;
+
+        if(i.getFileName("profile_picture").compareTo(this.getFileName("profile_picture")) != 0)
+            return false;
+
+        return true;
     }
 }

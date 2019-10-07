@@ -1,6 +1,7 @@
 package com.michael.qwitter.DummyData;
 
 import com.michael.qwitter.Model.Image;
+import com.michael.qwitter.Model.Status;
 import com.michael.qwitter.Model.User;
 
 import java.util.HashMap;
@@ -21,14 +22,86 @@ public class UserDatabase implements DummyUserDatabase
     final String ALPHABET = "0123456789ABCDEabcde";
     final int ALPHABET_LENGTH = ALPHABET.length();
 
-    private  UserDatabase()
+    private User dummyInitialize(User user, int num)
+    {
+        User returnUser = new User(user.getUserAlias(), user.getPassword());
+        String alias = user.getUserAlias();
+        String firstName = "us";
+        String lastName = "er";
+        //TODO profile picture
+
+        if(num > 1)
+        {
+            firstName += num;
+            lastName += num;
+            returnUser.setFirstName(firstName);
+            returnUser.setLastName(lastName);
+            returnUser.setProfilePicture(new Image("us" + num));
+        }
+        else
+        {
+            returnUser.setFirstName(firstName);
+            returnUser.setLastName(lastName);
+            returnUser.setProfilePicture(new Image("us"));
+        }
+
+        String fullName = firstName + " " + lastName;
+        returnUser.addStatusToFeed(new Status("status 1 " + num, alias, fullName));
+        returnUser.addStatusToFeed(new Status("status 2 " + num, alias, fullName));
+        returnUser.addStatusToFeed(new Status("status 3 " + num, alias, fullName));
+
+        returnUser.addStatusToStory(new Status("status 1 " + num, alias, fullName));
+        returnUser.addStatusToStory(new Status("status 2 " + num, alias, fullName));
+        returnUser.addStatusToStory(new Status("status 3 " + num, alias, fullName));
+
+        return returnUser;
+    }
+
+    private void dummyAddUser(User user)
+    {
+        addUser(user);
+    }
+
+    private UserDatabase()
     {
         mUsers = new HashMap<>();
         User user = new User("user", "password");
-        user.setFirstName("us");
-        user.setLastName("er");
-        user.setProfilePicture(new Image("us"));
-        addUser(user);
+        User user2 = new User("user2", "user2");
+        User user3 = new User("user3", "user3");
+        User user4 = new User("user4", "user4");
+        User user5 = new User("user5", "user5");
+
+        user = new User(dummyInitialize(user, 0));
+        user2 = new User(dummyInitialize(user2, 2));
+        user3 = new User(dummyInitialize(user3, 3));
+        user4 = new User(dummyInitialize(user4, 4));
+        user5 = new User(dummyInitialize(user5, 5));
+
+        user.addStatusToStory(new Status("https://www.javatpoint.com/android-linkify-example", user.getUserAlias(),
+                user.getFirstName() + " " + user.getLastName()));
+        user.addStatusToStory(new Status("#yeet", user.getUserAlias(),
+                user.getFirstName() + " " + user.getLastName()));
+
+        user.addFollower(user2);
+        user2.addFollowing(user);
+
+        user.addFollower(user2);
+        user2.addFollowing(user);
+
+        user.addFollower(user3);
+        user3.addFollowing(user);
+
+        user.addFollowing(user4);
+        user4.addFollower(user);
+
+        user.addFollowing(user5);
+        user5.addFollower(user);
+
+        dummyAddUser(user);
+        dummyAddUser(user2);
+        dummyAddUser(user3);
+        dummyAddUser(user4);
+        dummyAddUser(user5);
     }
 
     @Override
@@ -63,6 +136,7 @@ public class UserDatabase implements DummyUserDatabase
         }
     }
 
+    @Override
     public void updateUser(String username, User updatedUser)
     {
         mUsers.put(username, updatedUser);
@@ -103,6 +177,7 @@ public class UserDatabase implements DummyUserDatabase
         return sb.toString();
     }
 
+    @Override
     public Map<String, User> getUsers()
     {
         return mUsers;

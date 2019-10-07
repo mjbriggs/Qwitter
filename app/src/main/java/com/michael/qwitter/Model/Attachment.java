@@ -8,5 +8,6 @@ public interface Attachment
 {
     String getFileName(String type);
     File getFile(Context context, String type);
+    Attachment clone();
     //Bitmap getScaledBitmap(String path, Activity activity);
 }

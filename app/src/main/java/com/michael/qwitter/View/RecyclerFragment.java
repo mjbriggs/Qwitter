@@ -29,7 +29,8 @@ public class RecyclerFragment extends Fragment
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
-    private String[] myDataset;
+    private String mUserAlias;
+    private String mFeedType;
 
 
     public RecyclerFragment()
@@ -45,10 +46,15 @@ public class RecyclerFragment extends Fragment
      * @return A new instance of fragment RecyclerFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static RecyclerFragment newInstance()
+    public static RecyclerFragment newInstance(String username, String type)
     {
+        System.out.println("username in new instance " + username);
+        System.out.println("type in new instance " + type);
         RecyclerFragment fragment = new RecyclerFragment();
         Bundle args = new Bundle();
+        args.putString("USER_NAME", username);
+        args.putString("TYPE", type);
+        fragment.setArguments(args);
         return fragment;
     }
 
@@ -67,6 +73,9 @@ public class RecyclerFragment extends Fragment
         View view = inflater.inflate(R.layout.fragment_recycler, container, false);
         mRecyclerView = view.findViewById(R.id.my_fragment_recycler_view);
 
+        mUserAlias = getArguments().getString("USER_NAME");
+        mFeedType = getArguments().getString("TYPE");
+
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
         mRecyclerView.setHasFixedSize(true);
@@ -76,7 +85,7 @@ public class RecyclerFragment extends Fragment
         mRecyclerView.setLayoutManager(mLayoutManager);
 
         // specify an adapter (see also next example)
-        mAdapter = new RecyclerAdapter(myDataset);
+        mAdapter = new RecyclerAdapter(mUserAlias, mFeedType, getContext());
         mRecyclerView.setAdapter(mAdapter);
 
         return view;

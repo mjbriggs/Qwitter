@@ -41,7 +41,8 @@ public class CreateStatusPresenter
     }
     public void addStatusToUser()
     {
-        mStatusUser.addStatus(mStatus);
+        mStatusUser.addStatusToStory(mStatus);
+        //mStatusUser.addStatusToFeed(mStatus);
         mUserDatabase.updateUser(mStatusUser.getUserAlias(), mStatusUser);
     }
 
@@ -73,6 +74,8 @@ public class CreateStatusPresenter
 
     public void setStatus(String statusText)
     {
-        mStatus = new Status(statusText);
+        String alias = mStatusUser.getUserAlias();
+        String fullName = mStatusUser.getFirstName() + " " + mStatusUser.getLastName();
+        mStatus = new Status(statusText, alias, fullName);
     }
 }

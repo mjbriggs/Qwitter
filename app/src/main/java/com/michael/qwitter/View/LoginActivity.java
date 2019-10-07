@@ -62,6 +62,7 @@ public class LoginActivity extends AppCompatActivity implements UserRegistration
                         {
                             Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
                             intent.putExtra("USER_NAME", mUserAlias);
+                            intent.putExtra("PROFILE", false);
                             startActivity(intent);
                         }
                         else

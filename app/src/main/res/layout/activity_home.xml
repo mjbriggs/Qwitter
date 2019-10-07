@@ -7,20 +7,36 @@
     tools:context=".View.HomeActivity"
     android:id="@+id/activity_home">
 
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/profile_info_container"
+        android:visibility="invisible">
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="back"
+            android:id="@+id/back_button"
+            android:background="@color/colorBlue"
+            android:textColor="@color/colorBlack"
+            android:layout_marginRight="5dp"/>
+
+        <include layout="@layout/follow_view"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="follow"
+            android:id="@+id/follow_button"
+            android:background="@color/colorBlue"
+            android:textColor="@color/colorBlack"
+            android:layout_marginLeft="5dp"/>
+    </LinearLayout>
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay">
-
-        <TextView
-            android:id="@+id/title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:minHeight="?actionBarSize"
-            android:text="@string/app_name"
-            android:textAppearance="@style/TextAppearance.Widget.AppCompat.Toolbar.Title"
-            />
+        android:theme="@style/AppTheme.AppBarOverlay"
+        android:id="@+id/appbar">
         <!--android:padding="@dimen/appbar_padding"-->
 
         <com.google.android.material.tabs.TabLayout
