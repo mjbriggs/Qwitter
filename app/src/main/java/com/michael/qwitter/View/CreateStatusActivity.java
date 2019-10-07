@@ -2,6 +2,7 @@ package com.michael.qwitter.View;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -26,6 +27,26 @@ public class CreateStatusActivity extends AppCompatActivity
     private CreateStatusPresenter mCreateStatusPresenter;
     private HomePresenter mHomePresenter;
     private String mUserAlias;
+    private Button mAddImageButton;
+    private Button mAddVideoButton;
+
+    private void dispatchTakePictureIntent()
+    {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null)
+        {
+            startActivityForResult(takePictureIntent, 2);
+        }
+    }
+
+    private void dispatchTakeVideoIntent()
+    {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null)
+        {
+            startActivityForResult(takePictureIntent, 2);
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -90,6 +111,26 @@ public class CreateStatusActivity extends AppCompatActivity
                 intent.putExtra("PROFILE", false);
                 startActivity(intent);
                 finish();
+            }
+        });
+
+        mAddImageButton = findViewById(R.id.add_image_button);
+        mAddImageButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                dispatchTakePictureIntent();
+            }
+        });
+
+        mAddVideoButton = findViewById(R.id.add_video_button);
+        mAddVideoButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+                dispatchTakeVideoIntent();
             }
         });
     }

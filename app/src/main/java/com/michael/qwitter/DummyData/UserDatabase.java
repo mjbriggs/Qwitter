@@ -82,6 +82,17 @@ public class UserDatabase implements DummyUserDatabase
         user.addStatusToStory(new Status("#yeet", user.getUserAlias(),
                 user.getFirstName() + " " + user.getLastName()));
 
+        Status status = new Status("This has an image #very#cool", user.getUserAlias(),
+            user.getFirstName() + " " + user.getLastName());
+        status.setAttachment(new Image(user.getUserAlias() + "1").clone());
+
+        if(status.getAttachment() == null)
+            System.out.println("We failed to set attachment");
+        else
+            System.out.println("attachment is not null");
+
+        user.addStatusToStory(status.clone());
+
         user.addFollower(user2);
         user2.addFollowing(user);
 

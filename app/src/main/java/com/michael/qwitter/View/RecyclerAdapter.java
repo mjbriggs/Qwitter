@@ -3,6 +3,7 @@ package com.michael.qwitter.View;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextPaint;
@@ -125,7 +126,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
 
     // Replace the contents of a view (invoked by the layout manager)
     @Override
-    public void onBindViewHolder(RecyclerHolder holder, int position) {
+    public void onBindViewHolder(RecyclerHolder holder, final int position) {
         //TODO place a lot of the logic of getting info within the presenter, right now things are messy
 
         // - get element from your dataset at this position
@@ -138,11 +139,56 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
             holder.alias = holder.layoutView.findViewById(R.id.status_user_alias);
             holder.name = holder.layoutView.findViewById(R.id.status_name);
             holder.statusTimeStamp = holder.layoutView.findViewById(R.id.status_timestamp);
+            holder.statusImage = holder.layoutView.findViewById(R.id.status_image);
+            holder.statusContainer = holder.layoutView.findViewById(R.id.status_container);
 
             ViewGroup.LayoutParams params = holder.layoutView.getLayoutParams();
             // Changes the height and width to the specified *pixels*
-            params.height = 700;
+            params.height = 400;
             holder.layoutView.setLayoutParams(params);
+
+            holder.statusContainer.setOnClickListener(new View.OnClickListener()
+            {
+                @Override
+                public void onClick(View v)
+                {
+                    if(mFeedType.equalsIgnoreCase("FEED"))
+                    {
+                        mFeedPresenter = new FeedPresenter();
+                        Intent intent = new Intent(mContext, SoloStatusActivity.class);
+                        intent.putExtra("TEXT", mFeedPresenter.getStatuses(mUserAlias).get(position).getText());
+                        intent.putExtra("USER_NAME", mFeedPresenter.getUserAlias(position));
+                        intent.putExtra("FULL_NAME", mFeedPresenter.getUserFullName());
+                        intent.putExtra("DATE", mFeedPresenter.getStatuses(mUserAlias).get(position).getTimePosted());
+//                        if(mFeedPresenter.getStatuses(mUserAlias).get(position).getAttachment() != null)
+//                        {
+//                            Drawable d = mContext.getResources().getDrawable(R.drawable.new_icon);
+//                            Bitmap bitmap = ((BitmapDrawable) d).getBitmap();
+//                            intent.putExtra("IMG", bitmap);
+//                        }
+                        mContext.startActivity(intent);
+                    }
+                    else if(mFeedType.equalsIgnoreCase("STORY"))
+                    {
+                        mStoryPresenter = new StoryPresenter();
+                        Intent intent = new Intent(mContext, SoloStatusActivity.class);
+                        intent.putExtra("TEXT", mStoryPresenter.getStatuses(mUserAlias).get(position).getText());
+                        intent.putExtra("USER_NAME", mUserAlias);
+                        intent.putExtra("FULL_NAME", mStoryPresenter.getUserFullName());
+                        intent.putExtra("DATE", mStoryPresenter.getStatuses(mUserAlias).get(position).getTimePosted());
+                        mContext.startActivity(intent);
+                    }
+//                    else if(mFeedType.equalsIgnoreCase("SEARCH"))
+//                    {
+//                        mSearchPresenter = new SearchPresenter();
+//                        Intent intent = new Intent(mContext, SoloStatusActivity.class);
+//                        intent.putExtra("TEXT", mSearchPresenter.getStatuses(mUserAlias).get(position).getText());
+//                        intent.putExtra("USER_NAME", mSearchPresenter.getUserAlias(position));
+//                        intent.putExtra("FULL_NAME", mSearchPresenter.getUserFullName());
+//                        intent.putExtra("DATE", mSearchPresenter.getStatuses(mUserAlias).get(position).getTimePosted());
+//                    }
+                }
+            });
 
             if(mFeedType.equalsIgnoreCase("FEED"))
             {
@@ -155,6 +201,24 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
                 mStatusMonth = Month.values()[mStatusDate.getMonth()];
                 String date = mStatusMonth + " " + mStatusDate.getDay();
                 holder.statusTimeStamp.setText(date);
+                if(mFeedPresenter.getStatuses(mUserAlias).get(position).getAttachment() != null)
+                {
+                    System.out.println("status " + mFeedPresenter.getStatuses(mUserAlias).get(position).getText() +" at position " + position + " has image, setting image resource");
+                    holder.statusImage.setVisibility(View.VISIBLE);
+                    Drawable d = mContext.getResources().getDrawable(R.drawable.new_icon);
+                    holder.statusImage.setBackgroundColor(Color.BLACK);
+                    holder.statusImage.setImageDrawable(d);
+                    //holder.statusImage.setImageResource(R.drawable.new_icon);
+                    holder.statusImage.setMinimumHeight(300);
+                    holder.statusImage.setMinimumWidth(300);
+                    params.height = 700;
+                    holder.layoutView.setLayoutParams(params);
+                }
+                else
+                {
+                    System.out.println("status " + mFeedPresenter.getStatuses(mUserAlias).get(position).getText() + " has no image, image is null");
+
+                }
                 //TODO set profile picture
                 //TODO set attachment
 
@@ -170,6 +234,26 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
                 mStatusMonth = Month.values()[mStatusDate.getMonth()];
                 String date = mStatusMonth + " " + mStatusDate.getDay();
                 holder.statusTimeStamp.setText(date);
+
+                if(mStoryPresenter.getStatuses(mUserAlias).get(position).getAttachment() != null)
+                {
+                    System.out.println("status " + mStoryPresenter.getStatuses(mUserAlias).get(position).getText() + " has image, setting image resource");
+                    holder.statusImage.setVisibility(View.VISIBLE);
+                    Drawable d = mContext.getResources().getDrawable(R.drawable.new_icon);
+                    holder.statusImage.setBackgroundColor(Color.BLACK);
+                    holder.statusImage.setImageDrawable(d);
+                    //holder.statusImage.setImageResource(R.drawable.new_icon);
+                    holder.statusImage.setMinimumHeight(300);
+                    holder.statusImage.setMinimumWidth(300);
+                    params.height = 700;
+                    holder.layoutView.setLayoutParams(params);
+                }
+                else
+                {
+                    System.out.println("status " + mStoryPresenter.getStatuses(mUserAlias).get(position).getText() + " has no image, image is null");
+                    holder.statusImage.setVisibility(View.INVISIBLE);
+
+                }
                 //TODO set profile picture
                 //TODO set attachment
             }
@@ -186,6 +270,26 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
                 mStatusMonth = Month.values()[mStatusDate.getMonth()];
                 String date = mStatusMonth + " " + mStatusDate.getDay();
                 holder.statusTimeStamp.setText(date);
+
+                if(mSearchPresenter.getStatuses(mUserAlias).get(position).getAttachment() != null)
+                {
+                    System.out.println("status " + mSearchPresenter.getStatuses(mUserAlias).get(position).getText() + " has image, setting image resource");
+                    holder.statusImage.setVisibility(View.VISIBLE);
+                    Drawable d = mContext.getResources().getDrawable(R.drawable.new_icon);
+                    holder.statusImage.setBackgroundColor(Color.BLACK);
+                    holder.statusImage.setImageDrawable(d);
+                    //holder.statusImage.setImageResource(R.drawable.new_icon);
+                    holder.statusImage.setMinimumHeight(300);
+                    holder.statusImage.setMinimumWidth(300);
+                    params.height = 700;
+                    holder.layoutView.setLayoutParams(params);
+                }
+                else
+                {
+                    System.out.println("status " + mSearchPresenter.getStatuses(mUserAlias).get(position).getText() + " has no image, image is null");
+                    holder.statusImage.setVisibility(View.INVISIBLE);
+
+                }
                 //TODO set profile picture
                 //TODO set attachment
             }

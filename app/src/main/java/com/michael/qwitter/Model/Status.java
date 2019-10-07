@@ -18,7 +18,7 @@ public class Status
     //TODO add hashtag collection
     //TODO add mentions collection
     //TODO add URLs collection
-//    private Attachment mAttachment;
+    private Attachment mAttachment;
     private Date mTimePosted;
 
     public Status(String text)
@@ -26,7 +26,6 @@ public class Status
         mText = text;
         mTimePosted = new Date();
         mHashTags = new ArrayList<>();
-//        mAttachment = new Image("");
     }
 
     public Status(String text, String owner, String ownerName)
@@ -40,7 +39,6 @@ public class Status
 
         this.findHashTags();
         System.out.println("tags for status " + mHashTags.toString());
-//        mAttachment = new Image("");
     }
 
     public String getText()
@@ -54,15 +52,15 @@ public class Status
         this.findHashTags();
     }
 
-//    public Attachment getAttachment()
-//    {
-//        return mAttachment;
-//    }
-//
-//    public void setAttachment(Attachment mAttachment)
-//    {
-//        this.mAttachment = mAttachment;
-//    }
+    public Attachment getAttachment()
+    {
+        return mAttachment;
+    }
+
+    public void setAttachment(Attachment mAttachment)
+    {
+        this.mAttachment = mAttachment;
+    }
 
     public Date getTimePosted()
     {
@@ -150,7 +148,8 @@ public class Status
 
         status.setText(this.getText());
         status.setTimePosted((Date) this.mTimePosted.clone());
-//        status.setAttachment(this.mAttachment);
+        if(this.mAttachment != null)
+            status.setAttachment(this.mAttachment);
         status.setOwnerName(this.mOwnerName);
         status.setOwner(this.mOwner);
 

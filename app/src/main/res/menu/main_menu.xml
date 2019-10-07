@@ -10,4 +10,6 @@
         android:id="@+id/logout_button"
         android:title="Logout"
         />
+    <item android:id="@+id/update_profile_picture"
+        android:title="Update profile Image"/>
 </menu>

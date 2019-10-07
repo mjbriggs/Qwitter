@@ -3,6 +3,7 @@ package com.michael.qwitter.View;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -105,11 +106,23 @@ public class HomeActivity extends AppCompatActivity implements RecyclerFragment.
         return true;
     }
 
+    private void dispatchTakePictureIntent()
+    {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null)
+        {
+            startActivityForResult(takePictureIntent, 2);
+        }
+    }
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item)
     {
         switch (item.getItemId())
         {
+
+            case R.id.update_profile_picture:
+                dispatchTakePictureIntent();
+                return true;
             case R.id.logout_button:
                 mHomePresenter.logoutUser();
                 Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
