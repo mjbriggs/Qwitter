@@ -3,13 +3,18 @@ package com.michael.qwitter.Model;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.michael.qwitter.Utils.StatusParser;
+
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class Status
 {
     private String mOwner;
     private String mOwnerName;
     private String mText;
+    private List<Hashtag> mHashTags;
     //TODO add hashtag collection
     //TODO add mentions collection
     //TODO add URLs collection
@@ -20,16 +25,21 @@ public class Status
     {
         mText = text;
         mTimePosted = new Date();
+        mHashTags = new ArrayList<>();
 //        mAttachment = new Image("");
     }
 
     public Status(String text, String owner, String ownerName)
     {
         mOwnerName = ownerName;
+        mHashTags = new ArrayList<>();
         mOwner = owner;
         System.out.println("new status owner is " + owner + ", name is " + ownerName);
         mText = text;
         mTimePosted = new Date();
+
+        this.findHashTags();
+        System.out.println("tags for status " + mHashTags.toString());
 //        mAttachment = new Image("");
     }
 
@@ -41,6 +51,7 @@ public class Status
     public void setText(String mText)
     {
         this.mText = mText;
+        this.findHashTags();
     }
 
 //    public Attachment getAttachment()
@@ -61,6 +72,48 @@ public class Status
     public void setTimePosted(Date mTimePosted)
     {
         this.mTimePosted = mTimePosted;
+    }
+
+
+    public String getOwner()
+    {
+        return mOwner;
+    }
+
+    public void setOwner(String mOwner)
+    {
+        this.mOwner = mOwner;
+    }
+
+    public String getOwnerName()
+    {
+        return mOwnerName;
+    }
+
+    public void setOwnerName(String mOwnerName)
+    {
+        this.mOwnerName = mOwnerName;
+    }
+
+    public void findHashTags()
+    {
+        int start;
+        int end;
+        String tagStr;
+        ArrayList<Integer> tagLocations = StatusParser.parseForHashTags(mText);
+        for(int i = 0; i < tagLocations.size(); i += 2)
+        {
+            start = tagLocations.get(i);
+            end = tagLocations.get(i + 1);
+            tagStr = mText.substring(start, end + 1);
+            Hashtag tag = new Hashtag(tagStr);
+            mHashTags.add(tag);
+        }
+    }
+
+    public List<Hashtag> getHashTags()
+    {
+        return mHashTags;
     }
 
     @NonNull
@@ -102,25 +155,5 @@ public class Status
         status.setOwner(this.mOwner);
 
         return status;
-    }
-
-    public String getOwner()
-    {
-        return mOwner;
-    }
-
-    public void setOwner(String mOwner)
-    {
-        this.mOwner = mOwner;
-    }
-
-    public String getOwnerName()
-    {
-        return mOwnerName;
-    }
-
-    public void setOwnerName(String mOwnerName)
-    {
-        this.mOwnerName = mOwnerName;
     }
 }

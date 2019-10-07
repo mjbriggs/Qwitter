@@ -1,9 +1,9 @@
 package com.michael.qwitter.View;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.text.SpannableString;
-import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextPaint;
 import android.text.method.LinkMovementMethod;
@@ -23,20 +23,25 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.michael.qwitter.Presenter.FeedPresenter;
 import com.michael.qwitter.Presenter.FollowersPresenter;
 import com.michael.qwitter.Presenter.FollowingPresenter;
+import com.michael.qwitter.Presenter.RegistrationInterface;
+import com.michael.qwitter.Presenter.RegistrationPresenter;
 import com.michael.qwitter.Presenter.RelationPresenter;
+import com.michael.qwitter.Presenter.SearchPresenter;
 import com.michael.qwitter.Presenter.StatusPresenter;
 import com.michael.qwitter.Presenter.StoryPresenter;
 import com.michael.qwitter.R;
 import com.michael.qwitter.Utils.Month;
+import com.michael.qwitter.Utils.StatusParser;
 
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.regex.Pattern;
 
 public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.RecyclerHolder>
 {
 
     private StatusPresenter mFeedPresenter;
     private StatusPresenter mStoryPresenter;
+    private StatusPresenter mSearchPresenter;
     private RelationPresenter mFollowersPresenter;
     private RelationPresenter mFollowingPresenter;
     private String mFeedType;
@@ -45,6 +50,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
     private Month mStatusMonth;
     private Context mContext;
     private ViewGroup mParent;
+    private String mQuery;
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
     // you provide access to all the views for a data item in a view holder
@@ -76,6 +82,21 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
         mUserAlias = username;
         mFeedType = type;
         mContext = context;
+        mQuery = "";
+    }
+
+    public RecyclerAdapter(String username, String query, String type, Context context)
+    {
+        mFeedPresenter = null;
+        mFollowersPresenter = null;
+        mStoryPresenter = null;
+        mFollowingPresenter = null;
+        mUserAlias = username;
+        mFeedType = type;
+        mContext = context;
+        mQuery = query;
+
+        System.out.println("In adapter query is " + mQuery + " and type is " + mFeedType);
     }
 
 
@@ -86,7 +107,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
         mParent = parent;
         LinearLayout v = new LinearLayout(parent.getContext());
         // create a new view
-        if(mFeedType.equalsIgnoreCase("FEED") || mFeedType.equalsIgnoreCase("STORY"))
+        if(mFeedType.equalsIgnoreCase("FEED") || mFeedType.equalsIgnoreCase("STORY") || mFeedType.equalsIgnoreCase("SEARCH"))
         {
              v = (LinearLayout) LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.status_view, parent, false);
@@ -110,7 +131,8 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
         if(mFeedType.equalsIgnoreCase("FEED") ||
-        mFeedType.equalsIgnoreCase("STORY"))
+        mFeedType.equalsIgnoreCase("STORY") ||
+        mFeedType.equalsIgnoreCase("SEARCH"))
         {
             holder.statusText = holder.layoutView.findViewById(R.id.status_text);
             holder.alias = holder.layoutView.findViewById(R.id.status_user_alias);
@@ -152,61 +174,108 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
                 //TODO set attachment
             }
 
-            Pattern hashtags = Pattern.compile("#[A_Za-z0-9_.]*");
-            Pattern mentions = Pattern.compile("@[A_Za-z0-9_.]*");
-            Linkify.addLinks(holder.statusText, Linkify.WEB_URLS);
-            //Linkify.addLinks(holder.statusText, hashtags, null);
-            //Linkify.addLinks(holder.statusText, mentions, null);
+            else if(mFeedType.equalsIgnoreCase("SEARCH"))
+            {
+                System.out.println("Search feed query is " + mQuery);
+                mSearchPresenter = new SearchPresenter(mQuery);
 
+                holder.statusText.setText(mSearchPresenter.getStatuses("").get(position).getText());
+                holder.alias.setText("@" + mSearchPresenter.getStatus(position).getOwner());
+                holder.name.setText(mSearchPresenter.getStatus(position).getOwnerName());
+                mStatusDate = mSearchPresenter.getStatus(position).getTimePosted();
+                mStatusMonth = Month.values()[mStatusDate.getMonth()];
+                String date = mStatusMonth + " " + mStatusDate.getDay();
+                holder.statusTimeStamp.setText(date);
+                //TODO set profile picture
+                //TODO set attachment
+            }
+
+            Linkify.addLinks(holder.statusText, Linkify.WEB_URLS);
 
             CharSequence sequence = holder.statusText.getText();
             SpannableString strBuilder = new SpannableString(sequence);
-            ClickableSpan[] clickableSpans = strBuilder.getSpans(0, sequence.length(), ClickableSpan.class);
-            System.out.println("outside of span loop, clickablespans len is " + clickableSpans.length);
-            SpannableStringBuilder spannableStringBuilder = new SpannableStringBuilder(sequence);
+            ArrayList<Integer> hashtagIndices = StatusParser.parseForHashTags(holder.statusText.getText().toString());
+            ArrayList<Integer> mentionIndices = StatusParser.parseForMentions(holder.statusText.getText().toString());
 
-//
-//            ClickableSpan myActivityLauncher = new ClickableSpan() {
-//                public void onClick(View view) {
-//                    System.out.println("printing ");
-//                    Toast.makeText(view.getContext(), "clicked ", Toast.LENGTH_SHORT).show();
-//                }
-//            };
-//
-//            for(final ClickableSpan span : clickableSpans) {
-//                int start = strBuilder.getSpanStart(span);
-//                int end = strBuilder.getSpanEnd(span);
-//                int flags = strBuilder.getSpanFlags(span);
-//                final String str = sequence.subSequence(start, end).toString();
-//                System.out.println("Looping on " + str + " at " + start + " , " + end);
-//                strBuilder.setSpan(myActivityLauncher, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-//            }
-//
-//            System.out.println("# of spans is " + spannableStringBuilder.getSpans(0, sequence.length(), ClickableSpan.class).length);
-//            SpannableString ss = new SpannableString(spannableStringBuilder);
-//            holder.statusText.setText(strBuilder);
-//            holder.statusText.setMovementMethod(LinkMovementMethod.getInstance());
 
-            SpannableString ss2 = new SpannableString(holder.statusText.getText());
-            ClickableSpan clickableSpan = new ClickableSpan() {
-                @Override
-                public void onClick(View textView) {
-                    Toast.makeText(mContext, "clicked ", Toast.LENGTH_SHORT).show();
-                }
-                @Override
-                public void updateDrawState(TextPaint ds) {
-                    super.updateDrawState(ds);
-                    ds.setUnderlineText(false);
-                }
-            };
-            ss2.setSpan(clickableSpan, 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            System.out.println("hashtagIndices in " + holder.statusText.getText().toString() + " are " +
+                    hashtagIndices.toString());
 
-            holder.statusText.setText(ss2);
+            for(int j = 0; j < hashtagIndices.size(); j+=2)
+            {
+                final int start = hashtagIndices.get(j);
+                final int end = hashtagIndices.get(j + 1);
+                final String str = holder.statusText.getText().toString().substring(start, end + 1);
+                System.out.println("start " + start + " , end " + end +
+                        " tag " + holder.statusText.getText().toString().substring(start, end + 1));
+
+                final int in = start;
+
+                ClickableSpan clickableSpan = new ClickableSpan() {
+                    @Override
+                    public void onClick(View textView) {
+                        Intent intent = new Intent(mContext, SearchActivity.class);
+                        intent.putExtra("USER_NAME", mUserAlias);
+                        intent.putExtra("TYPE", "SEARCH");
+                        intent.putExtra("QUERY", str);
+                        mContext.startActivity(intent);
+                    }
+                    @Override
+                    public void updateDrawState(TextPaint ds) {
+                        super.updateDrawState(ds);
+                        ds.setUnderlineText(false);
+                    }
+                };
+                strBuilder.setSpan(clickableSpan, start, end + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+
+            for(int j = 0; j < mentionIndices.size(); j+=2)
+            {
+                final int start = mentionIndices.get(j);
+                final int end = mentionIndices.get(j + 1);
+                String notFinal;
+                if(end > start)
+                    notFinal = holder.statusText.getText().toString().substring(start + 1, end + 1);
+                else
+                    notFinal = "";
+
+                final String str = notFinal;
+
+                System.out.println("start " + start + " , end " + end +
+                        " mention " + holder.statusText.getText().toString().substring(start, end + 1));
+
+                final int in = start;
+                final RegistrationInterface existenceChecker = new RegistrationPresenter();
+
+                ClickableSpan clickableSpan = new ClickableSpan() {
+                    @Override
+                    public void onClick(View textView) {
+                        Intent intent = new Intent(mContext, ProfileActivity.class);
+                        intent.putExtra("USER_NAME", str);
+                        intent.putExtra("LOGGED_USER", mUserAlias);
+                        if(existenceChecker.isUserCreated(str))
+                        {
+                            mContext.startActivity(intent);
+                        }
+                        else
+                        {
+                            Toast.makeText(mContext, "Nothing to show, user " + str + " does not exist", Toast.LENGTH_SHORT).show();
+                        }                        //Toast.makeText(mContext, "clicked " + in, Toast.LENGTH_SHORT).show();
+                    }
+                    @Override
+                    public void updateDrawState(TextPaint ds) {
+                        super.updateDrawState(ds);
+                        ds.setUnderlineText(false);
+                    }
+                };
+                strBuilder.setSpan(clickableSpan, start, end + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+
+            holder.statusText.setText(strBuilder);
             holder.statusText.setMovementMethod(LinkMovementMethod.getInstance());
             holder.statusText.setHighlightColor(Color.TRANSPARENT);
 
         }
-
         else
         {
             ViewGroup.LayoutParams params = holder.layoutView.getLayoutParams();
@@ -270,6 +339,14 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
                 mFollowingPresenter = new FollowingPresenter(mUserAlias);
 
             return mFollowingPresenter.getFollowing().getFollowing().size();
+        }
+
+        else if(mFeedType.equalsIgnoreCase("SEARCH"))
+        {
+            if(mSearchPresenter == null)
+                mSearchPresenter = new SearchPresenter(mQuery);
+
+            return mSearchPresenter.getStatuses("").size();
         }
 
         return 0;

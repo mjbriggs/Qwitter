@@ -50,7 +50,8 @@ public class RegistrationPresenter implements RegistrationInterface
     @Override
     public boolean isUserCreated(String username)
     {
-        return username != null;
+
+        return mUserDatabase.userExists(username);
     }
     @Override
     public void saveImage(String username, Context context, Bitmap bitmap) {}

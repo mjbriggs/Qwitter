@@ -1,56 +1,69 @@
 package com.michael.qwitter.Model;
 
+import androidx.annotation.NonNull;
+
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class Hashtag
 {
-   private  Map<String , List<Status>> mHashTagList;
+    private String mTag;
+    private List<Status> mHashTagList;
 
     public Hashtag()
     {
-        mHashTagList = new HashMap<>();
+        mHashTagList = new ArrayList<>();
+    }
+    public Hashtag(String tag)
+    {
+        this();
+        mTag = tag.toLowerCase();
     }
 
-    public Map<String, List<Status>> getHashTagList()
+
+    public List<Status> getHashTagList()
     {
         return mHashTagList;
     }
 
-    public void setHashTagList(Map<String, List<Status>> mHashTagList)
+    public void setHashTagList(List<Status> mHashTagList)
     {
         this.mHashTagList = mHashTagList;
     }
 
-    public boolean doesHashTagExist(String tag)
+    public String getTag()
     {
-        tag = tag.toLowerCase();
-        return mHashTagList.containsKey(tag);
+        return mTag;
     }
 
-    public void createHashTag(String tag)
+    public void setTag(String mTag)
     {
-        mHashTagList.put(tag.toLowerCase(), new ArrayList<Status>());
+        this.mTag = mTag.toLowerCase();
     }
 
-    public void addStatus(String tag, Status status)
+    public void addStatus(Status status)
     {
-        if (!doesHashTagExist(tag))
+        if(mHashTagList.size() == 0)
         {
-            createHashTag(tag);
+            mHashTagList.add(status);
         }
-
-        ArrayList<Status> statuses = (ArrayList<Status>) mHashTagList.get(tag);
-        statuses.add(status);
-        mHashTagList.put(tag, statuses);
+        else
+        {
+            for(int i = 0; i < mHashTagList.size(); i++)
+            {
+                if(status.equals(mHashTagList.get(i)))
+                {
+                    return;
+                }
+            }
+            mHashTagList.add(status);
+        }
     }
 
-    public List<Status> getStatusByTag(String tag)
+    @NonNull
+    @Override
+    public String toString()
     {
-        return mHashTagList.get(tag);
+        return mTag;
     }
-
-
 }

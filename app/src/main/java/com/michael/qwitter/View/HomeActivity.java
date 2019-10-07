@@ -142,9 +142,6 @@ public class HomeActivity extends AppCompatActivity implements RecyclerFragment.
                     @Override
                     public boolean onQueryTextSubmit(String query)
                     {
-                        Toast toast = Toast.makeText(HomeActivity.this, mSearchView.getQuery(), Toast.LENGTH_SHORT);
-                        toast.show();
-
                         if(query.charAt(0) == '@')
                         {
                             if(mHomePresenter.doesUserExist(query.substring(1)))
@@ -160,6 +157,14 @@ public class HomeActivity extends AppCompatActivity implements RecyclerFragment.
                                 Toast toasty = Toast.makeText(HomeActivity.this, query + " cannot be found", Toast.LENGTH_SHORT);
                                 toasty.show();
                             }
+                        }
+                        else if(query.charAt(0) == '#')
+                        {
+                            Intent intent = new Intent(HomeActivity.this, SearchActivity.class);
+                            intent.putExtra("USER_NAME", mUserAlias);
+                            intent.putExtra("TYPE", "SEARCH");
+                            intent.putExtra("QUERY", query);
+                            startActivity(intent);
                         }
                         else
                         {

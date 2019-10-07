@@ -31,6 +31,7 @@ public class RecyclerFragment extends Fragment
     private RecyclerView.LayoutManager mLayoutManager;
     private String mUserAlias;
     private String mFeedType;
+    private String mQuery;
 
 
     public RecyclerFragment()
@@ -58,6 +59,20 @@ public class RecyclerFragment extends Fragment
         return fragment;
     }
 
+    public static RecyclerFragment newInstance(String username, String query, String type)
+    {
+        System.out.println("username in new instance " + username);
+        System.out.println("type in new instance " + type);
+        System.out.println("query in new instance " + query);
+        RecyclerFragment fragment = new RecyclerFragment();
+        Bundle args = new Bundle();
+        args.putString("USER_NAME", username);
+        args.putString("TYPE", type);
+        args.putString("QUERY", query);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
@@ -73,8 +88,19 @@ public class RecyclerFragment extends Fragment
         View view = inflater.inflate(R.layout.fragment_recycler, container, false);
         mRecyclerView = view.findViewById(R.id.my_fragment_recycler_view);
 
+        System.out.println("in fragment onCreateView");
+
         mUserAlias = getArguments().getString("USER_NAME");
         mFeedType = getArguments().getString("TYPE");
+        try
+        {
+            mQuery = getArguments().getString("QUERY");
+        }
+        catch (Exception ex)
+        {
+            ex.printStackTrace();
+            mQuery = "";
+        }
 
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
@@ -85,8 +111,17 @@ public class RecyclerFragment extends Fragment
         mRecyclerView.setLayoutManager(mLayoutManager);
 
         // specify an adapter (see also next example)
-        mAdapter = new RecyclerAdapter(mUserAlias, mFeedType, getContext());
+        if(mFeedType.equalsIgnoreCase("SEARCH"))
+        {
+            System.out.println("Setting search adapter");
+            mAdapter = new RecyclerAdapter(mUserAlias, mQuery, mFeedType, getContext());
+        }
+        else
+        {
+            mAdapter = new RecyclerAdapter(mUserAlias, mFeedType, getContext());
+        }
         mRecyclerView.setAdapter(mAdapter);
+        System.out.println("Adapter is set");
 
         return view;
     }

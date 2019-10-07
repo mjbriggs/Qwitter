@@ -45,4 +45,9 @@ public class FeedPresenter implements StatusPresenter
         System.out.println("returning " + status.getOwner() + " as status owner");
         return status.getOwner();
     }
+
+    public Status getStatus(int position)
+    {
+        return null;
+    }
 }

@@ -32,4 +32,9 @@ public class StoryPresenter implements StatusPresenter
     {
         return "";
     }
+
+    public Status getStatus(int position)
+    {
+        return null;
+    }
 }
