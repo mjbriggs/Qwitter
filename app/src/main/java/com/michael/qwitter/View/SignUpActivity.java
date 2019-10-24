@@ -1,6 +1,7 @@
 package com.michael.qwitter.View;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -10,9 +11,12 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.michael.qwitter.Presenter.RegistrationInterface;
-import com.michael.qwitter.Presenter.SignUpPresenter;
+import com.michael.qwitter.Presenter.RegistrationPresenter;
 import com.michael.qwitter.R;
+import com.michael.qwitter.Utils.Global;
 import com.michael.qwitter.View.ViewInterfaces.UserRegistration;
+
+import java.util.ArrayList;
 
 public class SignUpActivity extends AppCompatActivity implements UserRegistration
 {
@@ -38,7 +42,7 @@ public class SignUpActivity extends AppCompatActivity implements UserRegistratio
 
         mPasswordField = findViewById(R.id.password_field);
 
-        mSignUpPresenter = new SignUpPresenter();
+        mSignUpPresenter = new RegistrationPresenter(this);
 
         mSignUpButton = findViewById(R.id.sign_up_button);
         mSignUpButton.setOnClickListener(new View.OnClickListener()
@@ -46,44 +50,7 @@ public class SignUpActivity extends AppCompatActivity implements UserRegistratio
             @Override
             public void onClick(View v)
             {
-                grabFields();
-                if(validFields())
-                {
-                    if(mSignUpPresenter.validateUser(mUserAlias, mPassword).length() > 0)
-                    {
-                        CharSequence toastMessage = mUserAlias + " already exists";
-
-                        Toast toast = Toast.makeText(SignUpActivity.this, toastMessage, Toast.LENGTH_SHORT);
-                        toast.show();
-                        return;
-                    }
-                    mSignUpPresenter.addUser(mUserAlias, mPassword);
-
-                    String userToken = mSignUpPresenter.validateUser(mUserAlias, mPassword);
-
-                    if(userToken.length() > 0)
-                    {
-                        CharSequence toastMessage = mUserAlias + " has logged in";
-
-                        clearFields();
-
-                        Toast toast = Toast.makeText(SignUpActivity.this, toastMessage, Toast.LENGTH_SHORT);
-                        toast.show();
-
-                        Intent intent = new Intent(SignUpActivity.this, NewUserInfoActivity.class);
-                        intent.putExtra("USER_NAME", mUserAlias);
-                        startActivity(intent);
-                        finish();
-                    }
-                    else
-                    {
-                        CharSequence toastMessage = mUserAlias + " login has failed";
-
-                        Toast toast = Toast.makeText(SignUpActivity.this, toastMessage, Toast.LENGTH_SHORT);
-                        toast.show();
-                    }
-
-                }
+                mSignUpPresenter.signup();
             }
         });
 
@@ -98,31 +65,48 @@ public class SignUpActivity extends AppCompatActivity implements UserRegistratio
     }
 
     @Override
-    public void grabFields()
+    public ArrayList<String> grabTextFields()
     {
         mEmail = mEmailField.getText().toString();
         mUserAlias = mUserField.getText().toString();
         mPassword = mPasswordField.getText().toString();
+
+        ArrayList<String> fields = new ArrayList<>();
+        fields.add(mEmail);
+        fields.add(mUserAlias);
+        fields.add(mPassword);
+
+        return fields;
     }
 
     @Override
-    public boolean validFields()
+    public Bitmap grabImageField()
     {
-        if(mUserAlias == null || mPassword == null || mEmail == null)
-        {
-            return false;
-        }
+        return null;
+    }
 
-        if(mUserAlias.length() == 0 || mPassword.length() == 0 || mEmail.length() == 0)
+    @Override
+    public void goTo(String view)
+    {
+        if(view.equals(Global.NewUserInfoActivity))
         {
-            return false;
+            Intent intent = new Intent(SignUpActivity.this, NewUserInfoActivity.class);
+            intent.putExtra("USER_NAME", mUserAlias);
+            startActivity(intent);
+            finish();
         }
+    }
 
-        if(!mEmail.contains("@"))
-        {
-            return false;
-        }
+    @Override
+    public void postToast(String message)
+    {
+        Toast toast = Toast.makeText(SignUpActivity.this, message, Toast.LENGTH_SHORT);
+        toast.show();
+    }
 
-        return true;
+    @Override
+    public void updateField(String field, Object object)
+    {
+
     }
 }

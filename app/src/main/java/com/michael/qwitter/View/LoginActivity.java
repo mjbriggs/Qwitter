@@ -1,6 +1,7 @@
 package com.michael.qwitter.View;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -9,10 +10,13 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.michael.qwitter.Presenter.LoginPresenter;
 import com.michael.qwitter.Presenter.RegistrationInterface;
+import com.michael.qwitter.Presenter.RegistrationPresenter;
 import com.michael.qwitter.R;
+import com.michael.qwitter.Utils.Global;
 import com.michael.qwitter.View.ViewInterfaces.UserRegistration;
+
+import java.util.ArrayList;
 
 public class LoginActivity extends AppCompatActivity implements UserRegistration
 {
@@ -30,7 +34,7 @@ public class LoginActivity extends AppCompatActivity implements UserRegistration
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        mLoginPresenter = new LoginPresenter();
+        mLoginPresenter = new RegistrationPresenter(this);
 
         mUserField = findViewById(R.id.user_field);
         mPasswordField = findViewById(R.id.password_field);
@@ -41,46 +45,7 @@ public class LoginActivity extends AppCompatActivity implements UserRegistration
             @Override
             public void onClick(View v)
             {
-
-                grabFields();
-                if(validFields())
-                {
-                    //creates authtoken if user exists
-                    String userToken = mLoginPresenter.validateUser(mUserAlias, mPassword);
-
-                    if(userToken.length() > 0)
-                    {
-                        CharSequence toastMessage = mUserAlias + " has logged in";
-
-                        Toast toast = Toast.makeText(LoginActivity.this, toastMessage, Toast.LENGTH_SHORT);
-                        toast.show();
-
-                        clearFields();
-
-
-                        if(mLoginPresenter.isUserCreated(mUserAlias))
-                        {
-                            Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
-                            intent.putExtra("USER_NAME", mUserAlias);
-                            intent.putExtra("PROFILE", false);
-                            startActivity(intent);
-                        }
-                        else
-                        {
-                            Intent intent = new Intent(LoginActivity.this, NewUserInfoActivity.class);
-                            intent.putExtra("USER_NAME", mUserAlias);
-                            startActivity(intent);
-                        }
-
-                    }
-                    else
-                    {
-                        CharSequence toastMessage = mUserAlias + " login has failed";
-
-                        Toast toast = Toast.makeText(LoginActivity.this, toastMessage, Toast.LENGTH_SHORT);
-                        toast.show();
-                    }
-                }
+                mLoginPresenter.login();
             }
         });
 
@@ -90,10 +55,7 @@ public class LoginActivity extends AppCompatActivity implements UserRegistration
             @Override
             public void onClick(View v)
             {
-                clearFields();
-                
-                Intent intent = new Intent(LoginActivity.this, SignUpActivity.class);
-                startActivity(intent);
+                mLoginPresenter.load(Global.SignUpActivity);
             }
         });
     }
@@ -106,26 +68,58 @@ public class LoginActivity extends AppCompatActivity implements UserRegistration
     }
 
     @Override
-    public void grabFields()
+    public Bitmap grabImageField()
     {
-        mUserAlias = mUserField.getText().toString();
-        mPassword = mPasswordField.getText().toString();
+        return null;
     }
 
     @Override
-    public boolean validFields()
+    public ArrayList<String> grabTextFields()
     {
-        if(mUserAlias == null || mPassword == null)
-        {
-            return false;
-        }
+        mUserAlias = mUserField.getText().toString();
+        mPassword = mPasswordField.getText().toString();
 
-        if(mUserAlias.length() == 0 || mPassword.length() == 0)
-        {
-            return false;
-        }
+        ArrayList<String> fields = new ArrayList<>();
+        fields.add(mUserAlias);
+        fields.add(mPassword);
 
-        return true;
+        return fields;
+    }
+
+    @Override
+    public void goTo(String view)
+    {
+        if(view.equals(Global.HomeActivity))
+        {
+            Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+            intent.putExtra("USER_NAME", mUserAlias);
+            intent.putExtra("PROFILE", false);
+            startActivity(intent);
+        }
+        else if(view.equals(Global.NewUserInfoActivity))
+        {
+            Intent intent = new Intent(LoginActivity.this, NewUserInfoActivity.class);
+            intent.putExtra("USER_NAME", mUserAlias);
+            startActivity(intent);
+        }
+        else if(view.equals(Global.SignUpActivity))
+        {
+            Intent intent = new Intent(LoginActivity.this, SignUpActivity.class);
+            startActivity(intent);
+        }
+    }
+
+    @Override
+    public void postToast(String message)
+    {
+        Toast toast = Toast.makeText(LoginActivity.this, message, Toast.LENGTH_SHORT);
+        toast.show();
+    }
+
+    @Override
+    public void updateField(String field, Object object)
+    {
+
     }
 
 }

@@ -140,6 +140,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
             holder.name = holder.layoutView.findViewById(R.id.status_name);
             holder.statusTimeStamp = holder.layoutView.findViewById(R.id.status_timestamp);
             holder.statusImage = holder.layoutView.findViewById(R.id.status_image);
+            holder.statusImage.setVisibility(View.INVISIBLE);
             holder.statusContainer = holder.layoutView.findViewById(R.id.status_container);
 
             ViewGroup.LayoutParams params = holder.layoutView.getLayoutParams();
@@ -203,7 +204,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
                 holder.statusTimeStamp.setText(date);
                 if(mFeedPresenter.getStatuses(mUserAlias).get(position).getAttachment() != null)
                 {
-                    System.out.println("status " + mFeedPresenter.getStatuses(mUserAlias).get(position).getText() +" at position " + position + " has image, setting image resource");
+                    System.out.println("status " + mFeedPresenter.getStatuses(mUserAlias).get(position).getText() + " at position " + position + " has image, setting image resource");
                     holder.statusImage.setVisibility(View.VISIBLE);
                     Drawable d = mContext.getResources().getDrawable(R.drawable.new_icon);
                     holder.statusImage.setBackgroundColor(Color.BLACK);
@@ -357,7 +358,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
                         Intent intent = new Intent(mContext, ProfileActivity.class);
                         intent.putExtra("USER_NAME", str);
                         intent.putExtra("LOGGED_USER", mUserAlias);
-                        if(existenceChecker.isUserCreated(str))
+                        if(existenceChecker.checkUserCompleted(str))
                         {
                             mContext.startActivity(intent);
                         }

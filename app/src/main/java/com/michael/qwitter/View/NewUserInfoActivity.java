@@ -2,7 +2,6 @@ package com.michael.qwitter.View;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Matrix;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.View;
@@ -14,10 +13,13 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.michael.qwitter.Presenter.NewUserInfoPresenter;
 import com.michael.qwitter.Presenter.RegistrationInterface;
+import com.michael.qwitter.Presenter.RegistrationPresenter;
 import com.michael.qwitter.R;
+import com.michael.qwitter.Utils.Global;
 import com.michael.qwitter.View.ViewInterfaces.UserRegistration;
+
+import java.util.ArrayList;
 
 public class NewUserInfoActivity extends AppCompatActivity implements UserRegistration
 {
@@ -33,8 +35,6 @@ public class NewUserInfoActivity extends AppCompatActivity implements UserRegist
     private String mUserAlias;
     private Bitmap mBitmap;
 
-    private static final int REQUEST_PHOTO= 2;
-
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -44,7 +44,7 @@ public class NewUserInfoActivity extends AppCompatActivity implements UserRegist
         mUserAlias = getIntent().getExtras().getString("USER_NAME");
 
 
-        mNewUserInfoPresenter = new NewUserInfoPresenter();
+        mNewUserInfoPresenter = new RegistrationPresenter(this);
 
         mProfilePicture = findViewById(R.id.create_profile_picture);
 
@@ -61,7 +61,6 @@ public class NewUserInfoActivity extends AppCompatActivity implements UserRegist
 
                     Toast toast = Toast.makeText(NewUserInfoActivity.this, "Taking photo", Toast.LENGTH_SHORT);
                     toast.show();
-
                 }
                 catch (Exception ex)
                 {
@@ -83,28 +82,7 @@ public class NewUserInfoActivity extends AppCompatActivity implements UserRegist
             @Override
             public void onClick(View v)
             {
-                grabFields();
-                if(validFields())
-                {
-                    try
-                    {
-                        mNewUserInfoPresenter.updateUserInfo(mUserAlias, mFirstName, mLastName);
-                        Toast toast = Toast.makeText(NewUserInfoActivity.this, "Creating new user " + mFirstName + " " + mLastName, Toast.LENGTH_SHORT);
-                        toast.show();
-
-                        Intent intent = new Intent(NewUserInfoActivity.this, HomeActivity.class);
-                        intent.putExtra("USER_NAME", mUserAlias);
-                        startActivity(intent);
-                        finish();
-                    }
-                    catch (NullPointerException ex)
-                    {
-                        Toast toast = Toast.makeText(NewUserInfoActivity.this, "Cannot create user, check if fields are valid", Toast.LENGTH_SHORT);
-                        toast.show();
-                        ex.printStackTrace();
-                    }
-                }
-
+                mNewUserInfoPresenter.update(mUserAlias);
             }
         });
 
@@ -115,7 +93,7 @@ public class NewUserInfoActivity extends AppCompatActivity implements UserRegist
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getPackageManager()) != null)
         {
-            startActivityForResult(takePictureIntent, REQUEST_PHOTO);
+            startActivityForResult(takePictureIntent, Global.REQUEST_PHOTO);
         }
     }
 
@@ -123,25 +101,7 @@ public class NewUserInfoActivity extends AppCompatActivity implements UserRegist
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data)
     {
-        if (requestCode == REQUEST_PHOTO && resultCode == RESULT_OK)
-        {
-            Bundle extras = data.getExtras();
-
-            Bitmap sourceBitmap = (Bitmap) extras.get("data");
-
-            Matrix matrix = new Matrix();
-
-            //matrix.postRotate(270);  //rotation for normal phones
-            matrix.postRotate(90);  //rotation for emulator
-
-
-            mBitmap = Bitmap.createBitmap(sourceBitmap, 0, 0, sourceBitmap.getWidth(), sourceBitmap.getHeight(), matrix, true);
-
-            sourceBitmap.recycle();
-
-            mProfilePicture.setImageBitmap(mBitmap);
-        }
-
+        mNewUserInfoPresenter.savePicture(requestCode, resultCode, data);
     }
 
     @Override
@@ -153,28 +113,56 @@ public class NewUserInfoActivity extends AppCompatActivity implements UserRegist
     }
 
     @Override
-    public void grabFields()
+    public ArrayList<String> grabTextFields()
     {
         mFirstName = mFirstNameField.getText().toString();
         mLastName = mLastNameField.getText().toString();
-        mNewUserInfoPresenter.saveImage(mUserAlias, getApplicationContext(), mBitmap);
+
+        ArrayList<String> fields = new ArrayList<>();
+
+        fields.add(mFirstName);
+        fields.add(mLastName);
+
+        return fields;
     }
 
     @Override
-    public boolean validFields()
+    public Bitmap grabImageField()
     {
-        if(mFirstName == null || mLastName == null)
+        return mBitmap;
+    }
+
+    @Override
+    public void goTo(String view)
+    {
+        if(view.equals(Global.HomeActivity))
         {
-            return false;
+            Intent intent = new Intent(NewUserInfoActivity.this, HomeActivity.class);
+            intent.putExtra("USER_NAME", mUserAlias);
+            startActivity(intent);
+            finish();
         }
+    }
 
-        if(mFirstName.length() == 0 || mLastName.length() == 0)
+    @Override
+    public void postToast(String message)
+    {
+        Toast toast = Toast.makeText(NewUserInfoActivity.this, message, Toast.LENGTH_SHORT);
+        toast.show();
+    }
+
+    @Override
+    public void updateField(String field, Object object)
+    {
+        if(field.equals(Global.PROFILE_PIC))
         {
-            return false;
+            if(object.getClass().equals(Bitmap.class))
+            {
+                Bitmap bitmap = (Bitmap) object;
+
+                mBitmap = bitmap;
+                mProfilePicture.setImageBitmap(mBitmap);
+            }
         }
-
-        //TODO check for profile picture
-
-        return true;
     }
 }

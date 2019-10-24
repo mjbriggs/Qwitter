@@ -169,7 +169,7 @@ public class SoloStatusActivity extends AppCompatActivity
                     Intent intent = new Intent(SoloStatusActivity.this, ProfileActivity.class);
                     intent.putExtra("USER_NAME", str);
                     intent.putExtra("LOGGED_USER", mUserAliasString);
-                    if(existenceChecker.isUserCreated(str))
+                    if(existenceChecker.checkUserCompleted(str))
                     {
                         startActivity(intent);
                     }
