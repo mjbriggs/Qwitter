@@ -101,7 +101,12 @@ public class RegistrationPresenter implements RegistrationInterface
         return mUserCompleted;
     }
     @Override
-    public void saveImage(String username, Context context, Bitmap bitmap) {}
+    public void saveImage(String username, Context context, Bitmap bitmap)
+    {
+//        mProfilePicture = new Image(username);
+//        mProfilePicturePath = context.getFilesDir().getPath() + "\'"+ mProfilePicture.getFileName("profile_picture");
+//        new FileFromBitmap(bitmap, context.getApplicationContext(), mProfilePicturePath).execute();
+    }
 
     @Override
     public void login()
