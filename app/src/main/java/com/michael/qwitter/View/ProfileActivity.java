@@ -7,8 +7,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.PopupWindow;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,9 +17,9 @@ import androidx.viewpager.widget.ViewPager;
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
-import com.michael.qwitter.Presenter.HomePresenter;
 import com.michael.qwitter.Presenter.PresenterFactory.IPresenterFactory;
 import com.michael.qwitter.Presenter.PresenterFactory.PresenterFactory;
+import com.michael.qwitter.Presenter.PresenterInterfaces.IProfilePresenter;
 import com.michael.qwitter.Presenter.ProfilePresenter;
 import com.michael.qwitter.R;
 import com.michael.qwitter.Utils.Global;
@@ -32,24 +30,17 @@ import java.util.ArrayList;
 
 public class ProfileActivity extends HomeActivity implements IProfileView
 {
-    private CoordinatorLayout mHomeLayout;
     private LinearLayout mUserInfoLayout;
     private LinearLayout mFollowLayout;
-    private PopupWindow createStatusWindow;
-    private PopupWindow mSearchWindow;
-    private RelativeLayout mSearchContainer;
-    private HomePresenter mHomePresenter;
     private String mUserAlias;
-    private boolean mProfileMode;
     private TextView mUserName;
     private TextView mUserAliasView;
     private ImageView mUserProfilePict;
     private Button mFollowButton;
     private Button mBackButton;
-    private ProfilePresenter mProfilePresenter;
+    private IProfilePresenter mProfilePresenter;
     private IPresenterFactory mPresenterFactory;
     private String mLoggedUser;
-    private boolean isFollowed;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -62,10 +53,10 @@ public class ProfileActivity extends HomeActivity implements IProfileView
 
         //should validate if user is logged in before this
         mUserAlias = getIntent().getExtras().getString("USER_NAME");
-        System.out.println("profile user alias " + mUserAlias);
+//        System.out.println("profile user alias " + mUserAlias);
 
         mLoggedUser = getIntent().getExtras().getString("LOGGED_USER");
-        System.out.println("Logger user " + mLoggedUser);
+//        System.out.println("Logger user " + mLoggedUser);
 
         mUserInfoLayout = findViewById(R.id.profile_info_container);
         mUserInfoLayout.setVisibility(View.VISIBLE);
@@ -75,46 +66,25 @@ public class ProfileActivity extends HomeActivity implements IProfileView
         mFollowLayout.setBackgroundColor(Color.WHITE);
 
         mUserName = findViewById(R.id.follow_name);
-        mUserName.setText(mProfilePresenter.getName(mUserAlias));
 
         mUserAliasView = findViewById(R.id.follow_user_alias);
-        mUserAliasView.setText(mUserAlias);
+
         //TODO set profile picture
 
         mFollowButton = findViewById(R.id.follow_button);
-        if(mLoggedUser.equals(mUserAlias))
+        mFollowButton.setOnClickListener(new View.OnClickListener()
         {
-            mFollowButton.setVisibility(View.INVISIBLE);
-        }
-        else
-        {
-            mFollowButton.setVisibility(View.VISIBLE);
-            isFollowed = mProfilePresenter.isFollowed(mLoggedUser);
-            if(isFollowed)
+            @Override
+            public void onClick(View v)
             {
-                mFollowButton.setText("un-follow");
+                mProfilePresenter.handleFollowClick();
             }
+        });
 
-            mFollowButton.setOnClickListener(new View.OnClickListener()
-            {
-                @Override
-                public void onClick(View v)
-                {
-                    if(isFollowed)
-                    {
-                        mFollowButton.setText("follow");
-                        mProfilePresenter.unfollow(mUserAlias, mLoggedUser);
-                        isFollowed = false;
-                    }
-                    else
-                    {
-                        mFollowButton.setText("un-follow");
-                        mProfilePresenter.follow(mUserAlias, mLoggedUser);
-                        isFollowed = true;
-                    }
-                }
-            });
-        }
+        mProfilePresenter.setProfileInfo();
+
+//        mUserProfilePict = findViewById(R.id.follow_profile_picture);
+//        mUserProfilePict.setImageResource(R.drawable.ic_launcher_foreground);
 
         mBackButton = findViewById(R.id.back_button);
         mBackButton.setOnClickListener(new View.OnClickListener()
@@ -140,29 +110,6 @@ public class ProfileActivity extends HomeActivity implements IProfileView
         tabs.setSelectedTabIndicatorColor(Color.WHITE);
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.hide();
-
-//        mUserAlias = getIntent().getExtras().getString("USER_NAME");
-//        System.out.println("home user alias " + mUserAlias);
-
-//        mHomePresenter = new HomePresenter();
-
-//        try
-//        {
-//            mHomePresenter.findLoggedInUser(mUserAlias);
-//            System.out.println(mHomePresenter.getHomeUser().getStatuses().toString());
-//            Status stat = mHomePresenter.getHomeUser().getStatuses().get(mHomePresenter.getHomeUser().getStatuses().size() - 1);
-//            Toast toast = Toast.makeText(ProfileActivity.this, stat.toString()
-//                    , Toast.LENGTH_SHORT);
-//            toast.show();
-//        }
-//        catch (Exception e)
-//        {
-//            e.printStackTrace();
-//        }
-
-        mHomeLayout = findViewById(R.id.activity_home);
-
-
     }
 
     @Override
@@ -195,6 +142,26 @@ public class ProfileActivity extends HomeActivity implements IProfileView
     public void updateField(String field, Object object)
     {
         super.updateField(field, object);
+        if(field.equalsIgnoreCase("R.id.follow_name"))
+        {
+            String s = (String) object;
+            mUserName.setText(s);
+        }
+        else if(field.equalsIgnoreCase("R.id.follow_user_alias"))
+        {
+            String s = (String) object;
+            mUserAliasView.setText(s);
+        }
+        else if (field.equalsIgnoreCase("Hide.R.id.follow_button"))
+        {
+            mFollowButton.setVisibility(View.INVISIBLE);
+        }
+        else if (field.equalsIgnoreCase("R.id.follow_button"))
+        {
+            mFollowButton.setVisibility(View.VISIBLE);
+            String s = (String) object;
+            mFollowButton.setText(s);
+        }
     }
 
     @Override

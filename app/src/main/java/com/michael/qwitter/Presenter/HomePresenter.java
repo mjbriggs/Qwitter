@@ -95,7 +95,7 @@ public class HomePresenter implements IHomePresenter
                 //TODO logout user with amplify
                 return true;
             case R.id.menu_search_button:
-                final SearchView mSearchView;
+                Log.d(Global.DEBUG, "search button id clicked, going to " + Global.SearchView);
                 mHomeView.goTo(Global.SearchView);
                 return true;
             default:

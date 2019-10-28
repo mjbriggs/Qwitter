@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -185,6 +186,7 @@ public class HomeActivity extends AppCompatActivity implements RecyclerFragment.
         }
         else if (view.equals(Global.SearchView))
         {
+            Log.d(Global.DEBUG, "searchview clicked");
             mPopupWindow.showAtLocation(new View(HomeActivity.this), Gravity.CENTER_VERTICAL, 0, 0);
         }
         else if(view.equals(Global.ProfileActivity))

@@ -53,6 +53,8 @@ public class ProfilePresenter implements IProfilePresenter
         if(mLoggedUser == null)
             grabLoggedUser(loggedUser);
 
+        assert mUser != null;
+
         mFollowed = mUser.getFollowers().getFollowers().contains(mLoggedUser) &&
                 mLoggedUser.getFollowing().getFollowing().contains(mUser);
 
@@ -110,23 +112,41 @@ public class ProfilePresenter implements IProfilePresenter
             if(mFollowed)
             {
                 unfollow(username, loggedUser);
+                mProfileView.updateField("R.id.follow_button", "follow");
             }
             else
             {
                 follow(username, loggedUser);
+                mProfileView.updateField("R.id.follow_button", "un-follow");
             }
         }
     }
 
     @Override
-    public void toggleFollowButton()
-    {
-
-    }
-
-    @Override
     public void setProfileInfo()
     {
+        ArrayList<String> info = mProfileView.profileInfo();
+        assert info.size() == 2;
+        String username = info.get(0);
+        String loggedUser = info.get(1);
+        this.grabUser(username);
+        mProfileView.updateField("R.id.follow_name", mUser.getFirstName() + " " + mUser.getLastName());
+        mProfileView.updateField("R.id.follow_user_alias", username);
+
+        this.isFollowed(loggedUser);
+
+        if(username.equalsIgnoreCase(loggedUser) || !mAuthenticationHandler.authenticated())
+        {
+            mProfileView.updateField("Hide.R.id.follow_button", null);
+        }
+        else if(mFollowed)
+        {
+            mProfileView.updateField("R.id.follow_button", "un-follow");
+        }
+        else
+        {
+            mProfileView.updateField("R.id.follow_button", "follow");
+        }
 
     }
 
