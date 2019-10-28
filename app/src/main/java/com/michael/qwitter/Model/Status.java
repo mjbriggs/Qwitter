@@ -3,6 +3,7 @@ package com.michael.qwitter.Model;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.michael.qwitter.Model.ModelInterfaces.IAttachment;
 import com.michael.qwitter.Utils.StatusParser;
 
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ public class Status
     //TODO add hashtag collection
     //TODO add mentions collection
     //TODO add URLs collection
-    private Attachment mAttachment;
+    private IAttachment mAttachment;
     private Date mTimePosted;
 
     public Status(String text)
@@ -52,12 +53,12 @@ public class Status
         this.findHashTags();
     }
 
-    public Attachment getAttachment()
+    public IAttachment getAttachment()
     {
         return mAttachment;
     }
 
-    public void setAttachment(Attachment mAttachment)
+    public void setAttachment(IAttachment mAttachment)
     {
         this.mAttachment = mAttachment;
     }

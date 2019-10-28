@@ -5,25 +5,37 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.os.Bundle;
+import android.util.Log;
 
+import com.amazonaws.mobile.client.AWSMobileClient;
+import com.amazonaws.mobile.client.Callback;
+import com.amazonaws.mobile.client.results.SignInResult;
+import com.amazonaws.mobile.client.results.SignUpResult;
+import com.amazonaws.mobile.client.results.UserCodeDeliveryDetails;
 import com.michael.qwitter.DummyData.UserDatabase;
 import com.michael.qwitter.Model.User;
+import com.michael.qwitter.Presenter.PresenterInterfaces.IRegistrationPresenter;
 import com.michael.qwitter.Utils.Global;
 import com.michael.qwitter.View.LoginActivity;
 import com.michael.qwitter.View.NewUserInfoActivity;
 import com.michael.qwitter.View.SignUpActivity;
-import com.michael.qwitter.View.ViewInterfaces.UserRegistration;
+import com.michael.qwitter.View.ViewInterfaces.IRegistrationView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
-public class RegistrationPresenter implements RegistrationInterface
+import static com.amazonaws.mobile.auth.core.internal.util.ThreadUtils.runOnUiThread;
+import static com.amazonaws.mobile.client.internal.oauth2.OAuth2Client.TAG;
+
+public class RegistrationPresenter implements IRegistrationPresenter
 {
     private User mUser;
     private UserDatabase mUserDatabase;
     private boolean mUserCompleted;
-    private UserRegistration mRegistrationView;
+    private IRegistrationView mRegistrationView;
 
-    public RegistrationPresenter(UserRegistration registrationView)
+    public RegistrationPresenter(IRegistrationView registrationView)
     {
         mUser = new User("", "");
         mUserDatabase = UserDatabase.getInstance();
@@ -116,33 +128,76 @@ public class RegistrationPresenter implements RegistrationInterface
             ArrayList<String> fields = mRegistrationView.grabTextFields();
             assert fields.size() == 2;
 
-            String username = fields.get(0);
-            String password = fields.get(1);
+            final String username = fields.get(0);
+            final String password = fields.get(1);
             if(username != null && password != null
             && username.length() > 0 && password.length() > 0)
             {
-                String userToken = this.validateUser(username, password);
-                mUserCompleted = false;
+                AWSMobileClient.getInstance().signIn(username, password, null, new Callback<SignInResult>()
+                        {
+                            @Override
+                            public void onResult(final SignInResult signInResult)
+                            {
+                                runOnUiThread(new Runnable()
+                                {
+                                    @Override
+                                    public void run()
+                                    {
+                                        Log.d(TAG, "Sign-in callback state: " + signInResult.getSignInState());
+                                        switch (signInResult.getSignInState())
+                                        {
+                                            case DONE:
+                                                mRegistrationView.postToast("Sign-in done.");
+                                                String userToken = validateUser(username, password);
 
-                if(userToken.length() > 0)
-                {
-                    mUserCompleted = this.checkUserCompleted(username);
-                    mRegistrationView.clearFields();
+                                                if (userToken.length() == 0)
+                                                {
+                                                    addUser(username, password);
+                                                }
+                                                userToken = validateUser(username, password);
+                                                mUserCompleted = false;
 
-                    if(mUserCompleted)
-                    {
-                        mRegistrationView.goTo(Global.HomeActivity);
-                    }
-                    else
-                    {
-                        mRegistrationView.goTo(Global.NewUserInfoActivity);
-                    }
+                                                if(userToken.length() > 0)
+                                                {
+                                                    mUserCompleted = checkUserCompleted(username);
+                                                    mRegistrationView.clearFields();
 
-                    mRegistrationView.postToast(username + " has logged in");
-                    return;
-                }
+                                                    if(mUserCompleted)
+                                                    {
+                                                        mRegistrationView.goTo(Global.HomeActivity);
+                                                    }
+                                                    else
+                                                    {
+                                                        mRegistrationView.goTo(Global.NewUserInfoActivity);
+                                                    }
+
+                                                    mRegistrationView.postToast(username + " has logged in");
+                                                }
+                                                else
+                                                {
+                                                    Log.e(Global.DEBUG, "something went wrong, is user in database?");
+                                                }
+                                                break;
+                                            default:
+                                                mRegistrationView.postToast("Unsupported sign-in confirmation: " + signInResult.getSignInState());
+                                                break;
+                                        }
+                                    }
+                                });
+                            }
+
+                            @Override
+                            public void onError(Exception e)
+                            {
+                                //mRegistrationView.postToast("Unsupported sign-in confirmation for " + username);
+                                Log.e(Global.USER_STATE, e.getMessage(), e);
+                            }
+                        });
             }
-                mRegistrationView.postToast(username + " login has failed, check fields");
+            else
+            {
+                mRegistrationView.postToast("Invalid username and/or password");
+            }
         }
 
     }
@@ -154,15 +209,15 @@ public class RegistrationPresenter implements RegistrationInterface
         if (mRegistrationView.getClass().equals(SignUpActivity.class))
         {
             ArrayList<String> fields = mRegistrationView.grabTextFields();
-            assert fields.size() == 3;
+            assert fields.size() > 3;
 
-            String email = fields.get(0);
-            String username = fields.get(1);
-            String password = fields.get(2);
+            final String email = fields.get(0);
+            final String username = fields.get(1);
+            final String password = fields.get(2);
 
             if (email != null && username != null && password != null
-                    && email.length() > 0 && username.length() > 0 && password.length() > 0
-                    && email.contains("@"))
+                    && email.length() > 0 && username.length() > 0 && password.length() > 7
+                    && email.contains("@") && email.contains("."))
             {
                 String userToken = this.validateUser(username, password);
                 mUserCompleted = false;
@@ -173,19 +228,126 @@ public class RegistrationPresenter implements RegistrationInterface
                 }
                 else
                 {
-                    this.addUser(username, password);
+                    final Map<String, String> attributes = new HashMap<>();
+                    attributes.put("email", email);
+                    AWSMobileClient.getInstance().signUp(username, password, attributes, null, new Callback<SignUpResult>() {
+                        @Override
+                        public void onResult(final SignUpResult signUpResult)
+                        {
+                            runOnUiThread(new Runnable()
+                            {
+                                @Override
+                                public void run()
+                                {
+                                    Log.d(TAG, "Sign-up callback state: " + signUpResult.getConfirmationState());
+                                    if (!signUpResult.getConfirmationState())
+                                    {
+                                        final UserCodeDeliveryDetails details = signUpResult.getUserCodeDeliveryDetails();
+                                        mRegistrationView.postToast("Confirm sign-up with: " + details.getDestination());
+                                        Log.i(Global.USER_STATE, "Confirm sign-up with: " + details.getDestination());
 
-                    userToken = this.validateUser(username, password);
+                                        addUser(username, password);
 
-                    if(userToken.length() > 0)
-                    {
-                        mRegistrationView.goTo(Global.NewUserInfoActivity);
-                        mRegistrationView.postToast(username + " is logged in");
-                        return;
-                    }
+                                        mRegistrationView.goTo(Global.VerifyPopUp);
+                                    }
+                                    else
+                                    {
+                                        mRegistrationView.postToast("Sign-up done.");
+
+                                        addUser(username, password);
+
+                                        final String userToken = validateUser(username, password);
+
+                                        if(userToken.length() > 0)
+                                        {
+                                            mRegistrationView.goTo(Global.NewUserInfoActivity);
+                                            mRegistrationView.postToast(username + " is logged in");
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                        @Override
+                        public void onError(Exception e)
+                        {
+                            Log.e(TAG, "Sign-up error", e);
+//                            mRegistrationView.postToast(username + " " + e.getMessage());
+                        }
+                    });
                 }
             }
-            mRegistrationView.postToast(username + " login has failed, check fields");
+            else
+            {
+                mRegistrationView.postToast(username + " login has failed, check fields");
+                Log.e(Global.DEBUG, "email = " + email);
+                Log.e(Global.DEBUG, "username = " + username);
+                Log.e(Global.DEBUG, "password = " + password);
+            }
+
+        }
+    }
+
+    @Override
+    public void verify()
+    {
+        if (mRegistrationView.getClass().equals(SignUpActivity.class))
+        {
+            ArrayList<String> fields = mRegistrationView.grabTextFields();
+            assert fields.size() > 3;
+
+            final String username = fields.get(1);
+            final String password = fields.get(2);
+            final String code = fields.get(3);
+
+            if (username != null && code != null && password != null
+                    && username.length() > 0 && code.length() > 0 && password.length() > 0)
+            {
+                AWSMobileClient.getInstance().confirmSignUp(username, code, new Callback<SignUpResult>()
+                {
+                    @Override
+                    public void onResult(final SignUpResult signUpResult)
+                    {
+                        runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                Log.d(TAG, "Sign-up callback state: " + signUpResult.getConfirmationState());
+                                if (!signUpResult.getConfirmationState())
+                                {
+                                    final UserCodeDeliveryDetails details = signUpResult.getUserCodeDeliveryDetails();
+                                    mRegistrationView.postToast("Confirm sign-up with: " + details.getDestination());
+                                }
+                                else
+                                {
+                                    mRegistrationView.postToast("Sign-up done.");
+
+                                    final String userToken = validateUser(username, password);
+
+                                    if(userToken.length() > 0)
+                                    {
+                                        mRegistrationView.goTo(Global.NewUserInfoActivity);
+                                        mRegistrationView.postToast(username + " is logged in");
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onError(Exception e)
+                    {
+                        Log.e(TAG, "Confirm sign-up error", e);
+                    }
+                });
+            }
+            else
+            {
+                mRegistrationView.postToast(username + " verification has failed, check fields");
+                Log.e(Global.DEBUG, "username = " + username);
+                Log.e(Global.DEBUG, "code = " + code);
+            }
+
         }
     }
 

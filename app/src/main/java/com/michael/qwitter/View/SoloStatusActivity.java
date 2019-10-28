@@ -22,7 +22,7 @@ import android.widget.VideoView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.michael.qwitter.Presenter.RegistrationInterface;
+import com.michael.qwitter.Presenter.PresenterInterfaces.IRegistrationPresenter;
 import com.michael.qwitter.Presenter.RegistrationPresenter;
 import com.michael.qwitter.Presenter.SoloStatusPresenter;
 import com.michael.qwitter.R;
@@ -161,7 +161,7 @@ public class SoloStatusActivity extends AppCompatActivity
                     " mention " + mStatusText.getText().toString().substring(start, end + 1));
 
             final int in = start;
-            final RegistrationInterface existenceChecker = new RegistrationPresenter();
+            final IRegistrationPresenter existenceChecker = new RegistrationPresenter();
 
             ClickableSpan clickableSpan = new ClickableSpan() {
                 @Override

@@ -4,6 +4,7 @@ import com.michael.qwitter.DummyData.DummyUserDatabase;
 import com.michael.qwitter.DummyData.UserDatabase;
 import com.michael.qwitter.Model.Followers;
 import com.michael.qwitter.Model.Following;
+import com.michael.qwitter.Presenter.PresenterInterfaces.RelationPresenter;
 
 public class FollowersPresenter implements RelationPresenter
 {

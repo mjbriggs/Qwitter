@@ -8,10 +8,12 @@ import android.graphics.Point;
 
 import androidx.annotation.Nullable;
 
+import com.michael.qwitter.Model.ModelInterfaces.IAttachment;
+
 import java.io.File;
 
 //Every image is associated with a user
-public class Image implements Attachment
+public class Image implements IAttachment
 {
     private static final int REQUEST_PHOTO= 2;
     private String mUsername;
@@ -90,9 +92,9 @@ public class Image implements Attachment
     }
 
     @Override
-    public Attachment clone()
+    public IAttachment clone()
     {
-        Attachment a = new Image(this.mUsername);
+        IAttachment a = new Image(this.mUsername);
 
         return a;
     }

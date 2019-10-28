@@ -10,21 +10,21 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.michael.qwitter.Presenter.RegistrationInterface;
+import com.michael.qwitter.Presenter.PresenterInterfaces.IRegistrationPresenter;
 import com.michael.qwitter.Presenter.RegistrationPresenter;
 import com.michael.qwitter.R;
 import com.michael.qwitter.Utils.Global;
-import com.michael.qwitter.View.ViewInterfaces.UserRegistration;
+import com.michael.qwitter.View.ViewInterfaces.IRegistrationView;
 
 import java.util.ArrayList;
 
-public class LoginActivity extends AppCompatActivity implements UserRegistration
+public class LoginActivity extends AppCompatActivity implements IRegistrationView
 {
     private Button mLoginButton;
     private Button mSignUpButton;
     private EditText mUserField;
     private EditText mPasswordField;
-    private RegistrationInterface mLoginPresenter;
+    private IRegistrationPresenter mLoginPresenter;
     private String mUserAlias;
     private String mPassword;
 
@@ -35,6 +35,7 @@ public class LoginActivity extends AppCompatActivity implements UserRegistration
         setContentView(R.layout.activity_login);
 
         mLoginPresenter = new RegistrationPresenter(this);
+
 
         mUserField = findViewById(R.id.user_field);
         mPasswordField = findViewById(R.id.password_field);

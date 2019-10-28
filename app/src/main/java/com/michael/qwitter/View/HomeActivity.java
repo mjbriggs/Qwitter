@@ -17,27 +17,35 @@ import android.widget.SearchView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
-import com.michael.qwitter.Model.Status;
 import com.michael.qwitter.Presenter.HomePresenter;
+import com.michael.qwitter.Presenter.PresenterFactory.IPresenterFactory;
+import com.michael.qwitter.Presenter.PresenterFactory.PresenterFactory;
+import com.michael.qwitter.Presenter.PresenterInterfaces.IHomePresenter;
 import com.michael.qwitter.R;
+import com.michael.qwitter.Utils.Global;
+import com.michael.qwitter.View.ViewInterfaces.IHomeView;
 import com.michael.qwitter.View.ui.main.SectionsPagerAdapter;
 
-public class HomeActivity extends AppCompatActivity implements RecyclerFragment.OnFragmentInteractionListener
+public class HomeActivity extends AppCompatActivity implements RecyclerFragment.OnFragmentInteractionListener, IHomeView
 {
 
     private CoordinatorLayout mHomeLayout;
     private PopupWindow createStatusWindow;
     private PopupWindow mSearchWindow;
     private RelativeLayout mSearchContainer;
-    private HomePresenter mHomePresenter;
+    private IHomePresenter mHomePresenter; //TODO update to interface
+    private IPresenterFactory mPresenterFactory;
     private String mUserAlias;
+    private String mQuery;
+    private SearchView mSearchView;
+    private PopupWindow mPopupWindow;
+    private View mPopupView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -49,6 +57,9 @@ public class HomeActivity extends AppCompatActivity implements RecyclerFragment.
         mUserAlias = getIntent().getExtras().getString("USER_NAME");
         System.out.println("home user alias " + mUserAlias);
 
+        mPresenterFactory = new PresenterFactory();
+        mHomePresenter = (HomePresenter) mPresenterFactory.createPresenter(Global.HomeActivity,  this);
+
         //this is what blows up the feed fragment
         SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(this, getSupportFragmentManager(), mUserAlias, "FEED");
         ViewPager viewPager = findViewById(R.id.view_pager);
@@ -58,24 +69,44 @@ public class HomeActivity extends AppCompatActivity implements RecyclerFragment.
         tabs.setSelectedTabIndicatorColor(Color.WHITE);
         FloatingActionButton fab = findViewById(R.id.fab);
 
-//        mUserAlias = getIntent().getExtras().getString("USER_NAME");
-//        System.out.println("home user alias " + mUserAlias);
+        // inflate the layout of the popup window
+        LayoutInflater inflater = (LayoutInflater)
+                getSystemService(LAYOUT_INFLATER_SERVICE);
+        mPopupView = inflater.inflate(R.layout.search_view, null);
 
-        mHomePresenter = new HomePresenter();
+        // create the popup window
+        int width = RelativeLayout.LayoutParams.WRAP_CONTENT;
+        int height = RelativeLayout.LayoutParams.WRAP_CONTENT;
+        boolean focusable = true; // lets taps outside the popup also dismiss it
+        mPopupWindow = new PopupWindow(mPopupView, width, height, focusable);
 
-        try
+        mSearchView = mPopupView.findViewById(R.id.search_view_bar);
+        mSearchView.setSubmitButtonEnabled(true);
+        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener()
         {
-            mHomePresenter.findLoggedInUser(mUserAlias);
-            System.out.println(mHomePresenter.getHomeUser().getFeed().getStatusList().toString());
-            Status stat = mHomePresenter.getHomeUser().getStatuses().get(mHomePresenter.getHomeUser().getStatuses().size() - 1);
-            Toast toast = Toast.makeText(HomeActivity.this, stat.toString()
-                    , Toast.LENGTH_SHORT);
-            toast.show();
-        }
-        catch (Exception e)
+            @Override
+            public boolean onQueryTextSubmit(String query)
+            {
+                mQuery = query;
+                mHomePresenter.handleQuery(mQuery);
+                return false;
+            }
+            @Override
+            public boolean onQueryTextChange(String newText)
+            {
+                return false;
+            }
+        });
+
+        Button mCloseButton = mPopupView.findViewById(R.id.close_search_button);
+        mCloseButton.setOnClickListener(new View.OnClickListener()
         {
-            e.printStackTrace();
-        }
+            @Override
+            public void onClick(View v)
+            {
+                mPopupWindow.dismiss();
+            }
+        });
 
         mHomeLayout = findViewById(R.id.activity_home);
 
@@ -84,13 +115,7 @@ public class HomeActivity extends AppCompatActivity implements RecyclerFragment.
             @Override
             public void onClick(View view)
             {
-                if(mHomePresenter.findLoggedInUser(mUserAlias))
-                {
-                    Intent intent = new Intent(HomeActivity.this, CreateStatusActivity.class);
-                    intent.putExtra("USER_NAME", mUserAlias);
-                    startActivity(intent);
-                    finish();
-                }
+                mHomePresenter.openView(Global.CreateStatusActivity);
             }
         });
 
@@ -114,117 +139,85 @@ public class HomeActivity extends AppCompatActivity implements RecyclerFragment.
             startActivityForResult(takePictureIntent, 2);
         }
     }
+
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item)
     {
-        switch (item.getItemId())
+        return mHomePresenter.handleMenu(item);
+    }
+
+    @Override
+    public String user()
+    {
+        return mUserAlias;
+    }
+
+    @Override
+    public void postToast(String message)
+    {
+        Toast toasty = Toast.makeText(HomeActivity.this, message, Toast.LENGTH_SHORT);
+        toasty.show();
+    }
+
+    @Override
+    public void goTo(String view)
+    {
+        if(view.equals(Global.CreateStatusActivity))
         {
-
-            case R.id.update_profile_picture:
-                dispatchTakePictureIntent();
-                return true;
-            case R.id.logout_button:
-                mHomePresenter.logoutUser();
-                Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
-                startActivity(intent);
-                finish();
-                return true;
-            case R.id.menu_search_button:
-                final SearchView mSearchView;
-                Toast toast = Toast.makeText(HomeActivity.this, "clicked search", Toast.LENGTH_SHORT);
-                toast.show();
-                // inflate the layout of the popup window
-                LayoutInflater inflater = (LayoutInflater)
-                        getSystemService(LAYOUT_INFLATER_SERVICE);
-                final View popupView = inflater.inflate(R.layout.search_view, null);
-
-                // create the popup window
-                int width = RelativeLayout.LayoutParams.WRAP_CONTENT;
-                int height = RelativeLayout.LayoutParams.WRAP_CONTENT;
-                boolean focusable = true; // lets taps outside the popup also dismiss it
-                final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
-
-                // show the popup window
-                // which view you pass in doesn't matter, it is only used for the window token
-                popupWindow.showAtLocation(new View(HomeActivity.this), Gravity.CENTER_VERTICAL, 0, 0);
-
-                mSearchView = popupView.findViewById(R.id.search_view_bar);
-                mSearchView.setSubmitButtonEnabled(true);
-                mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener()
-                {
-                    @Override
-                    public boolean onQueryTextSubmit(String query)
-                    {
-                        if(query.charAt(0) == '@')
-                        {
-                            if(mHomePresenter.doesUserExist(query.substring(1)))
-                            {
-                                Intent intent = new Intent(HomeActivity.this, ProfileActivity.class);
-                                intent.putExtra("USER_NAME", query.substring(1));
-                                intent.putExtra("LOGGED_USER", mUserAlias);
-                                startActivity(intent);
-                                popupWindow.dismiss();
-                            }
-                            else
-                            {
-                                Toast toasty = Toast.makeText(HomeActivity.this, query + " cannot be found", Toast.LENGTH_SHORT);
-                                toasty.show();
-                            }
-                        }
-                        else if(query.charAt(0) == '#')
-                        {
-                            Intent intent = new Intent(HomeActivity.this, SearchActivity.class);
-                            intent.putExtra("USER_NAME", mUserAlias);
-                            intent.putExtra("TYPE", "SEARCH");
-                            intent.putExtra("QUERY", query);
-                            startActivity(intent);
-                        }
-                        else
-                        {
-                            Toast toasty = Toast.makeText(HomeActivity.this, "search format not supported", Toast.LENGTH_SHORT);
-                            toasty.show();
-                        }
-
-
-                        return false;
-                    }
-
-                    @Override
-                    public boolean onQueryTextChange(String newText)
-                    {
-                        return false;
-                    }
-                });
-
-                Button mCloseButton = popupView.findViewById(R.id.close_search_button);
-                mCloseButton.setOnClickListener(new View.OnClickListener()
-                {
-                    @Override
-                    public void onClick(View v)
-                    {
-                        popupWindow.dismiss();
-                    }
-                });
-                // dismiss the popup window when touched
-//                popupView.setOnTouchListener(new View.OnTouchListener() {
-//                    @Override
-//                    public boolean onTouch(View v, MotionEvent event) {
-//                        popupWindow.dismiss();
-//                        return true;
-//                    }
-//                });
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+            Intent intent = new Intent(HomeActivity.this, CreateStatusActivity.class);
+            intent.putExtra("USER_NAME", mUserAlias);
+            startActivity(intent);
+            finish();
+        }
+        else if (view.equals(Global.LoginActivity))
+        {
+            Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
+            startActivity(intent);
+            finish();
+        }
+        else if(view.equals(Global.ProfileActivity))
+        {
+            Intent intent = new Intent(HomeActivity.this, ProfileActivity.class);
+            intent.putExtra("USER_NAME", mQuery.substring(1));
+            intent.putExtra("LOGGED_USER", mUserAlias);
+            startActivity(intent);
+            mPopupWindow.dismiss();
+        }
+        else if (view.equals(Global.SearchView))
+        {
+            mPopupWindow.showAtLocation(new View(HomeActivity.this), Gravity.CENTER_VERTICAL, 0, 0);
+        }
+        else if(view.equals(Global.ProfileActivity))
+        {
+            Intent intent = new Intent(HomeActivity.this, ProfileActivity.class);
+            intent.putExtra("USER_NAME", mQuery.substring(1));
+            intent.putExtra("LOGGED_USER", mUserAlias);
+            startActivity(intent);
+            mPopupWindow.dismiss();
+        }
+        else if (view.equals(Global.SearchActivity))
+        {
+            Intent intent = new Intent(HomeActivity.this, SearchActivity.class);
+            intent.putExtra("USER_NAME", mUserAlias);
+            intent.putExtra("TYPE", "SEARCH");
+            intent.putExtra("QUERY", mQuery);
+            startActivity(intent);
         }
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data)
+    public void takePhoto()
     {
-        super.onActivityResult(requestCode, resultCode, data);
-        mHomePresenter.findLoggedInUser(mUserAlias);
-        System.out.println(mHomePresenter.getHomeUser().getStatuses().toString());
+        dispatchTakePictureIntent();
+    }
+
+    @Override
+    public void updateField(String field, Object object)
+    {
+        if(field.equalsIgnoreCase(SearchView.class.toString()))
+        {
+            mSearchView.setQuery((String) object, false);
+        }
     }
 
     public void onFragmentInteraction(int position)

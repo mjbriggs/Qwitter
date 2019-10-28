@@ -1,4 +1,4 @@
-package com.michael.qwitter.Presenter;
+package com.michael.qwitter.Presenter.PresenterInterfaces;
 
 import com.michael.qwitter.Model.Status;
 

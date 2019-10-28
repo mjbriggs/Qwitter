@@ -4,6 +4,7 @@ import com.michael.qwitter.DummyData.DummyUserDatabase;
 import com.michael.qwitter.DummyData.UserDatabase;
 import com.michael.qwitter.Model.Status;
 import com.michael.qwitter.Model.User;
+import com.michael.qwitter.Presenter.PresenterInterfaces.StatusPresenter;
 
 import java.util.Date;
 import java.util.List;

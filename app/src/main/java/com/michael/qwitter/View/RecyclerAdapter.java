@@ -24,11 +24,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.michael.qwitter.Presenter.FeedPresenter;
 import com.michael.qwitter.Presenter.FollowersPresenter;
 import com.michael.qwitter.Presenter.FollowingPresenter;
-import com.michael.qwitter.Presenter.RegistrationInterface;
+import com.michael.qwitter.Presenter.PresenterInterfaces.IRegistrationPresenter;
 import com.michael.qwitter.Presenter.RegistrationPresenter;
-import com.michael.qwitter.Presenter.RelationPresenter;
+import com.michael.qwitter.Presenter.PresenterInterfaces.RelationPresenter;
 import com.michael.qwitter.Presenter.SearchPresenter;
-import com.michael.qwitter.Presenter.StatusPresenter;
+import com.michael.qwitter.Presenter.PresenterInterfaces.StatusPresenter;
 import com.michael.qwitter.Presenter.StoryPresenter;
 import com.michael.qwitter.R;
 import com.michael.qwitter.Utils.Month;
@@ -350,7 +350,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
                         " mention " + holder.statusText.getText().toString().substring(start, end + 1));
 
                 final int in = start;
-                final RegistrationInterface existenceChecker = new RegistrationPresenter();
+                final IRegistrationPresenter existenceChecker = new RegistrationPresenter();
 
                 ClickableSpan clickableSpan = new ClickableSpan() {
                     @Override

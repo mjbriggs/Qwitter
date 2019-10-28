@@ -1,13 +1,13 @@
-package com.michael.qwitter.Model;
+package com.michael.qwitter.Model.ModelInterfaces;
 
 import android.content.Context;
 
 import java.io.File;
 
-public interface Attachment
+public interface IAttachment
 {
     String getFileName(String type);
     File getFile(Context context, String type);
-    Attachment clone();
+    IAttachment clone();
     //Bitmap getScaledBitmap(String path, Activity activity);
 }

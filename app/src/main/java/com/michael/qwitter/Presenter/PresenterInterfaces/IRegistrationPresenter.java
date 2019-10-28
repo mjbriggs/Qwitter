@@ -1,11 +1,11 @@
-package com.michael.qwitter.Presenter;
+package com.michael.qwitter.Presenter.PresenterInterfaces;
 
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 
 //TODO create interface that validates user
-public interface RegistrationInterface
+public interface IRegistrationPresenter
 {
     void addUser(String username, String password);
     String validateUser(String username, String password);
@@ -17,6 +17,7 @@ public interface RegistrationInterface
     boolean isUserCompleted();
     void saveImage(String username, Context context, Bitmap bitmap);
     void login();
+    void verify();
     void signup();
     void update(String username);
     void load(String activity);

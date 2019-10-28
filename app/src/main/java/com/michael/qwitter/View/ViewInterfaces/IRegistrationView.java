@@ -4,12 +4,9 @@ import android.graphics.Bitmap;
 
 import java.util.ArrayList;
 
-public interface UserRegistration
+public interface IRegistrationView extends IView
 {
     ArrayList<String> grabTextFields();
     Bitmap grabImageField();
     void clearFields();
-    void goTo(String view);
-    void postToast(String message);
-    void updateField(String field, Object object);
 }

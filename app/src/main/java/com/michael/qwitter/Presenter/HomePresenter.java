@@ -1,12 +1,23 @@
 package com.michael.qwitter.Presenter;
 
-import com.michael.qwitter.DummyData.UserDatabase;
-import com.michael.qwitter.Model.User;
+import android.util.Log;
+import android.view.MenuItem;
+import android.widget.SearchView;
 
-public class HomePresenter
+import com.michael.qwitter.DummyData.UserDatabase;
+import com.michael.qwitter.Model.ModelInterfaces.IAuthentication;
+import com.michael.qwitter.Model.User;
+import com.michael.qwitter.Presenter.PresenterInterfaces.IHomePresenter;
+import com.michael.qwitter.R;
+import com.michael.qwitter.Utils.Global;
+import com.michael.qwitter.View.ViewInterfaces.IHomeView;
+
+public class HomePresenter implements IHomePresenter
 {
     private UserDatabase mUserDatabase;
     private User mHomeUser;
+    private IHomeView mHomeView;
+    private IAuthentication mAuthenticationHandler;
 
     //TODO talk to adapter to update status list, for now I'll just print the list of statuses
     public HomePresenter()
@@ -15,12 +26,27 @@ public class HomePresenter
         mHomeUser = null;
     }
 
+    public HomePresenter(IHomeView view)
+    {
+        this();
+        mHomeView = view;
+    }
+
+    public HomePresenter(IHomeView view, IAuthentication authenticationHandler)
+    {
+        this();
+        mHomeView = view;
+        mAuthenticationHandler = authenticationHandler;
+    }
+
     public boolean findLoggedInUser(String username)
     {
+        Log.d(Global.DEBUG, "username in findLoggerInUser is " + username);
+        //TODO update to check with cognito for validation
         setHomeUser(mUserDatabase.getUser(username));
         if(!mUserDatabase.validateAuthToken(mHomeUser.getUserAlias(), mHomeUser.getAuthToken()))
         {
-            mHomeUser = null;
+            return false;
         }
 
         return mHomeUser != null;
@@ -38,8 +64,16 @@ public class HomePresenter
 
     public void logoutUser()
     {
-        mHomeUser.setAuthToken("");
-        mUserDatabase.updateUser(mHomeUser.getUserAlias(), mHomeUser);
+        if(mHomeUser != null)
+        {
+            mHomeUser.setAuthToken("");
+            mUserDatabase.updateUser(mHomeUser.getUserAlias(), mHomeUser);
+        }
+        else
+        {
+            Log.e(Global.ERROR, "home user does not exist in database");
+        }
+
     }
 
     public boolean doesUserExist(String username)
@@ -47,4 +81,66 @@ public class HomePresenter
         return mUserDatabase.userExists(username);
     }
 
+    @Override
+    public boolean handleMenu(MenuItem item)
+    {
+        switch (item.getItemId())
+        {
+            case R.id.update_profile_picture:
+                mHomeView.takePhoto();
+                return true;
+            case R.id.logout_button:
+                this.logoutUser();
+                mHomeView.goTo(Global.LoginActivity);
+                //TODO logout user with amplify
+                return true;
+            case R.id.menu_search_button:
+                final SearchView mSearchView;
+                mHomeView.goTo(Global.SearchView);
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    @Override
+    public void openView(String view)
+    {
+        if(view.equals(Global.CreateStatusActivity))
+        {
+            if(!mAuthenticationHandler.authenticated())
+            {
+                Log.i(Global.ERROR, mHomeView.user() + " does not have permission to create a status");
+                return;
+            }
+        }
+        mHomeView.goTo(view);
+    }
+
+    @Override
+    public void handleQuery(String query)
+    {
+        if(query.charAt(0) == '@')
+        {
+            if(this.doesUserExist(query.substring(1)))
+            {
+                mHomeView.goTo(Global.ProfileActivity);
+                mHomeView.updateField(SearchView.class.toString(), "");
+            }
+            else
+            {
+                mHomeView.postToast(query + " cannot be found");
+            }
+        }
+        else if(query.charAt(0) == '#')
+        {
+            mHomeView.goTo(Global.SearchActivity);
+            mHomeView.updateField(SearchView.class.toString(), "");
+        }
+        else
+        {
+            mHomeView.postToast("search format not supported");
+        }
+
+    }
 }

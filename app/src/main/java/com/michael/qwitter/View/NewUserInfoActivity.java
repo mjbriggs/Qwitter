@@ -13,18 +13,18 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.michael.qwitter.Presenter.RegistrationInterface;
+import com.michael.qwitter.Presenter.PresenterInterfaces.IRegistrationPresenter;
 import com.michael.qwitter.Presenter.RegistrationPresenter;
 import com.michael.qwitter.R;
 import com.michael.qwitter.Utils.Global;
-import com.michael.qwitter.View.ViewInterfaces.UserRegistration;
+import com.michael.qwitter.View.ViewInterfaces.IRegistrationView;
 
 import java.util.ArrayList;
 
-public class NewUserInfoActivity extends AppCompatActivity implements UserRegistration
+public class NewUserInfoActivity extends AppCompatActivity implements IRegistrationView
 {
 
-    private RegistrationInterface mNewUserInfoPresenter;
+    private IRegistrationPresenter mNewUserInfoPresenter;
     private ImageView mProfilePicture;
     private TextView mEditPicture;
     private EditText mFirstNameField;
