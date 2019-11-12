@@ -88,20 +88,21 @@ public class SoloStatusActivity extends AppCompatActivity
         mStatusText = findViewById(R.id.status_text);
         mStatusText.setText(mTextString);
 
-        mSoloPresenter = new SoloStatusPresenter(mUserAliasString, mStatusDate, mTextString);
+//        mSoloPresenter = new SoloStatusPresenter(mUserAliasString, mStatusDate, mTextString);
         mStatusImageView = findViewById(R.id.status_image);
 
-        if(mSoloPresenter.hasImage())
-        {
-            System.out.println("setting image in solo activity");
-            //will grab attachment info from presenter
-            mStatusImageView.setVisibility(View.VISIBLE);
-            mStatusImageView.setBackgroundColor(Color.BLACK);
-            Drawable d = getResources().getDrawable(R.drawable.new_icon);
-            mStatusImageView.setImageDrawable(d);
-            mStatusImageView.setMinimumHeight(300);
-            mStatusImageView.setMinimumWidth(300);
-        }
+
+//        if(mSoloPresenter.hasImage())
+//        {
+//            System.out.println("setting image in solo activity");
+//            //will grab attachment info from presenter
+//            mStatusImageView.setVisibility(View.VISIBLE);
+//            mStatusImageView.setBackgroundColor(Color.BLACK);
+//            Drawable d = getResources().getDrawable(R.drawable.new_icon);
+//            mStatusImageView.setImageDrawable(d);
+//            mStatusImageView.setMinimumHeight(300);
+//            mStatusImageView.setMinimumWidth(300);
+//        }
 
         //TODO option to set video
 

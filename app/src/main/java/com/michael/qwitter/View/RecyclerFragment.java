@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.michael.qwitter.R;
+import com.michael.qwitter.View.ViewInterfaces.IView;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -21,13 +22,13 @@ import com.michael.qwitter.R;
  * Use the {@link RecyclerFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class RecyclerFragment extends Fragment
+public class RecyclerFragment extends Fragment implements IView
 {
 
     private OnFragmentInteractionListener mListener;
     private TextView mTextView;
     private RecyclerView mRecyclerView;
-    private RecyclerView.Adapter mAdapter;
+    private RecyclerAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
     private String mUserAlias;
     private String mFeedType;
@@ -106,6 +107,8 @@ public class RecyclerFragment extends Fragment
         // in content do not change the layout size of the RecyclerView
         mRecyclerView.setHasFixedSize(true);
 
+
+
         // use a linear layout manager
         mLayoutManager = new LinearLayoutManager(getActivity());
         mRecyclerView.setLayoutManager(mLayoutManager);
@@ -122,6 +125,18 @@ public class RecyclerFragment extends Fragment
         }
         mRecyclerView.setAdapter(mAdapter);
         System.out.println("Adapter is set");
+
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+
+                if (!recyclerView.canScrollVertically(1)) {
+                    mAdapter.update();
+                    mAdapter.notifyDataSetChanged();
+                }
+            }
+        });
 
         return view;
     }
@@ -170,5 +185,23 @@ public class RecyclerFragment extends Fragment
     {
         // TODO: Update argument type and name
         void onFragmentInteraction(int position);
+    }
+
+    @Override
+    public void updateField(String field, Object object)
+    {
+
+    }
+
+    @Override
+    public void goTo(String view)
+    {
+
+    }
+
+    @Override
+    public void postToast(String message)
+    {
+
     }
 }

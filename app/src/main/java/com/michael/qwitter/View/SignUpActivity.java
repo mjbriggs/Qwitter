@@ -14,8 +14,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.michael.qwitter.Presenter.PresenterFactory.ACPresenterFactory;
 import com.michael.qwitter.Presenter.PresenterInterfaces.IRegistrationPresenter;
-import com.michael.qwitter.Presenter.RegistrationPresenter;
 import com.michael.qwitter.R;
 import com.michael.qwitter.Utils.Global;
 import com.michael.qwitter.View.ViewInterfaces.IRegistrationView;
@@ -48,8 +48,10 @@ public class SignUpActivity extends AppCompatActivity implements IRegistrationVi
 
         mPasswordField = findViewById(R.id.password_field);
 
-        mSignUpPresenter = new RegistrationPresenter(this);
+//        mSignUpPresenter = new RegistrationPresenter(this);
 
+        mSignUpPresenter = (IRegistrationPresenter)
+                ACPresenterFactory.getInstance().createPresenter(Global.IRegistrationView, this);
         mSignUpButton = findViewById(R.id.sign_up_button);
         mSignUpButton.setOnClickListener(new View.OnClickListener()
         {

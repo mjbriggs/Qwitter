@@ -7,4 +7,5 @@ public interface RelationPresenter
 {
     Followers getFollowers();
     Following getFollowing();
+    void update(String username);
 }

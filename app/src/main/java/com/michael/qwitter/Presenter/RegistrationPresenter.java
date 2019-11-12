@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -13,6 +14,8 @@ import com.amazonaws.mobile.client.results.SignInResult;
 import com.amazonaws.mobile.client.results.SignUpResult;
 import com.amazonaws.mobile.client.results.UserCodeDeliveryDetails;
 import com.michael.qwitter.DummyData.UserDatabase;
+import com.michael.qwitter.GatewayFacade.Accessor;
+import com.michael.qwitter.GatewayFacade.IAccessor;
 import com.michael.qwitter.Model.User;
 import com.michael.qwitter.Presenter.PresenterInterfaces.IRegistrationPresenter;
 import com.michael.qwitter.Utils.Global;
@@ -28,12 +31,13 @@ import java.util.Map;
 import static com.amazonaws.mobile.auth.core.internal.util.ThreadUtils.runOnUiThread;
 import static com.amazonaws.mobile.client.internal.oauth2.OAuth2Client.TAG;
 
-public class RegistrationPresenter implements IRegistrationPresenter
+public class RegistrationPresenter extends AsyncTask<String, Integer, String> implements IRegistrationPresenter
 {
     private User mUser;
     private UserDatabase mUserDatabase;
     private boolean mUserCompleted;
     private IRegistrationView mRegistrationView;
+    private IAccessor mAccessor;
 
     public RegistrationPresenter(IRegistrationView registrationView)
     {
@@ -41,6 +45,7 @@ public class RegistrationPresenter implements IRegistrationPresenter
         mUserDatabase = UserDatabase.getInstance();
         mUserCompleted = false;
         mRegistrationView = registrationView;
+        mAccessor = new Accessor();
     }
 
     public RegistrationPresenter()
@@ -49,6 +54,7 @@ public class RegistrationPresenter implements IRegistrationPresenter
         mUserDatabase = UserDatabase.getInstance();
         mUserCompleted = false;
         mRegistrationView = null;
+        mAccessor = new Accessor();
     }
 
     @Override
@@ -58,7 +64,8 @@ public class RegistrationPresenter implements IRegistrationPresenter
         mUser.setUserAlias(username);
         mUser.setPassword(password);
         mUser.setAuthToken(mUserDatabase.generateAuthToken());
-        mUserDatabase.addUser(mUser);
+//        mUserDatabase.addUser(mUser);
+        mAccessor.updateUserInfo(mUser);
     }
 
     @Override
@@ -86,18 +93,19 @@ public class RegistrationPresenter implements IRegistrationPresenter
 //            throw new NullPointerException("Profile picture must be saved before user info can be updated");
 //        }
 
-        User user = mUserDatabase.getUser(username);
+        User user = new User(username, "");
         user.setFirstName(firstName);
         user.setLastName(lastName);
+        mAccessor.updateUserInfo(user);
 //        user.setProfilePicture(mProfilePicture);
-        mUserDatabase.updateUser(username, user);
-//        mProfilePicture.setImagePath(mProfilePicturePath);
-        System.out.println("Updated user info \n" + mUserDatabase.getUser(username).toString());
+//        mUserDatabase.updateUser(username, user);
+////        mProfilePicture.setImagePath(mProfilePicturePath);
+//        System.out.println("Updated user info \n" + mUserDatabase.getUser(username).toString());
     }
     @Override
     public boolean checkUserCompleted(String username)
     {
-        User user = mUserDatabase.getUser(username);
+        User user = mAccessor.getUserInfo(username);
 
         System.out.println(user.toString());
 
@@ -138,6 +146,7 @@ public class RegistrationPresenter implements IRegistrationPresenter
                             @Override
                             public void onResult(final SignInResult signInResult)
                             {
+
                                 runOnUiThread(new Runnable()
                                 {
                                     @Override
@@ -147,36 +156,8 @@ public class RegistrationPresenter implements IRegistrationPresenter
                                         switch (signInResult.getSignInState())
                                         {
                                             case DONE:
-                                                mRegistrationView.postToast("Sign-in done.");
-                                                String userToken = validateUser(username, password);
 
-                                                if (userToken.length() == 0)
-                                                {
-                                                    addUser(username, password);
-                                                }
-                                                userToken = validateUser(username, password);
-                                                mUserCompleted = false;
-
-                                                if(userToken.length() > 0)
-                                                {
-                                                    mUserCompleted = checkUserCompleted(username);
-                                                    mRegistrationView.clearFields();
-
-                                                    if(mUserCompleted)
-                                                    {
-                                                        mRegistrationView.goTo(Global.HomeActivity);
-                                                    }
-                                                    else
-                                                    {
-                                                        mRegistrationView.goTo(Global.NewUserInfoActivity);
-                                                    }
-
-                                                    mRegistrationView.postToast(username + " has logged in");
-                                                }
-                                                else
-                                                {
-                                                    Log.e(Global.DEBUG, "something went wrong, is user in database?");
-                                                }
+                                                doInBackground("login", username);
                                                 break;
                                             default:
                                                 mRegistrationView.postToast("Unsupported sign-in confirmation: " + signInResult.getSignInState());
@@ -219,15 +200,16 @@ public class RegistrationPresenter implements IRegistrationPresenter
                     && email.length() > 0 && username.length() > 0 && password.length() > 7
                     && email.contains("@") && email.contains("."))
             {
-                String userToken = this.validateUser(username, password);
-                mUserCompleted = false;
-
-                if (userToken.length() > 0)
-                {
-                    mRegistrationView.postToast(username + " already exists");
-                }
-                else
-                {
+                //TODO do I add email to database or does cognito handle that?
+//                String userToken = this.validateUser(username, password);
+//                mUserCompleted = false;
+//
+//                if (userToken.length() > 0)
+//                {
+//                    mRegistrationView.postToast(username + " already exists");
+//                }
+//                else
+//                {
                     final Map<String, String> attributes = new HashMap<>();
                     attributes.put("email", email);
                     AWSMobileClient.getInstance().signUp(username, password, attributes, null, new Callback<SignUpResult>() {
@@ -255,14 +237,9 @@ public class RegistrationPresenter implements IRegistrationPresenter
                                         mRegistrationView.postToast("Sign-up done.");
 
                                         addUser(username, password);
+                                        mRegistrationView.goTo(Global.NewUserInfoActivity);
+                                        mRegistrationView.postToast(username + " is logged in");
 
-                                        final String userToken = validateUser(username, password);
-
-                                        if(userToken.length() > 0)
-                                        {
-                                            mRegistrationView.goTo(Global.NewUserInfoActivity);
-                                            mRegistrationView.postToast(username + " is logged in");
-                                        }
                                     }
                                 }
                             });
@@ -274,7 +251,7 @@ public class RegistrationPresenter implements IRegistrationPresenter
 //                            mRegistrationView.postToast(username + " " + e.getMessage());
                         }
                     });
-                }
+//                }
             }
             else
             {
@@ -322,13 +299,9 @@ public class RegistrationPresenter implements IRegistrationPresenter
                                 {
                                     mRegistrationView.postToast("Sign-up done.");
 
-                                    final String userToken = validateUser(username, password);
+                                    mRegistrationView.goTo(Global.NewUserInfoActivity);
+                                    mRegistrationView.postToast(username + " is logged in");
 
-                                    if(userToken.length() > 0)
-                                    {
-                                        mRegistrationView.goTo(Global.NewUserInfoActivity);
-                                        mRegistrationView.postToast(username + " is logged in");
-                                    }
                                 }
                             }
                         });
@@ -409,5 +382,37 @@ public class RegistrationPresenter implements IRegistrationPresenter
             mRegistrationView.updateField(Global.PROFILE_PIC, bitmap);
         }
 
+    }
+
+    @Override
+    protected String doInBackground(String... strings)
+    {
+        String type = strings[0];
+        String username = strings[1];
+        String email = "";
+        String firstName = "";
+        String lastName = "";
+        if(strings.length > 2)
+        {
+            email = strings[2];
+            firstName = strings[3];
+            lastName = strings[4];
+        }
+
+        if(type.equalsIgnoreCase("login"))
+        {
+            User loggedUser = mAccessor.getUserInfo(username);
+
+            if(loggedUser.getFirstName().length() == 0 ||
+            loggedUser.getLastName().length() == 0) //will also check profile picture
+            {
+                mRegistrationView.goTo(Global.NewUserInfoActivity);
+            }
+            else
+            {
+                mRegistrationView.goTo(Global.HomeActivity);
+            }
+        }
+        return null;
     }
 }

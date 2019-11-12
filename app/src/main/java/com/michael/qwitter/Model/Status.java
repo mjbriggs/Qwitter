@@ -27,6 +27,8 @@ public class Status
         mText = text;
         mTimePosted = new Date();
         mHashTags = new ArrayList<>();
+        mOwner = "";
+        mOwnerName = "";
     }
 
     public Status(String text, String owner, String ownerName)
@@ -92,6 +94,11 @@ public class Status
     public void setOwnerName(String mOwnerName)
     {
         this.mOwnerName = mOwnerName;
+    }
+
+    public void setHashTags(List<Hashtag> mHashTags)
+    {
+        this.mHashTags = mHashTags;
     }
 
     public void findHashTags()

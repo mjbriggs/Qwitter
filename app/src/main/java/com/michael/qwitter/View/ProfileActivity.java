@@ -17,8 +17,7 @@ import androidx.viewpager.widget.ViewPager;
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
-import com.michael.qwitter.Presenter.PresenterFactory.IPresenterFactory;
-import com.michael.qwitter.Presenter.PresenterFactory.PresenterFactory;
+import com.michael.qwitter.Presenter.PresenterFactory.ACPresenterFactory;
 import com.michael.qwitter.Presenter.PresenterInterfaces.IProfilePresenter;
 import com.michael.qwitter.Presenter.ProfilePresenter;
 import com.michael.qwitter.R;
@@ -39,7 +38,7 @@ public class ProfileActivity extends HomeActivity implements IProfileView
     private Button mFollowButton;
     private Button mBackButton;
     private IProfilePresenter mProfilePresenter;
-    private IPresenterFactory mPresenterFactory;
+    private ACPresenterFactory mPresenterFactory;
     private String mLoggedUser;
 
     @Override
@@ -48,9 +47,8 @@ public class ProfileActivity extends HomeActivity implements IProfileView
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        mPresenterFactory = new PresenterFactory();
-        mProfilePresenter = (ProfilePresenter) mPresenterFactory.createPresenter(Global.ProfileActivity, this);
-
+        mProfilePresenter = (ProfilePresenter)
+                ACPresenterFactory.getInstance().createPresenter(Global.ProfileActivity, this);
         //should validate if user is logged in before this
         mUserAlias = getIntent().getExtras().getString("USER_NAME");
 //        System.out.println("profile user alias " + mUserAlias);

@@ -25,8 +25,7 @@ import androidx.viewpager.widget.ViewPager;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
 import com.michael.qwitter.Presenter.HomePresenter;
-import com.michael.qwitter.Presenter.PresenterFactory.IPresenterFactory;
-import com.michael.qwitter.Presenter.PresenterFactory.PresenterFactory;
+import com.michael.qwitter.Presenter.PresenterFactory.ACPresenterFactory;
 import com.michael.qwitter.Presenter.PresenterInterfaces.IHomePresenter;
 import com.michael.qwitter.R;
 import com.michael.qwitter.Utils.Global;
@@ -41,7 +40,7 @@ public class HomeActivity extends AppCompatActivity implements RecyclerFragment.
     private PopupWindow mSearchWindow;
     private RelativeLayout mSearchContainer;
     private IHomePresenter mHomePresenter; //TODO update to interface
-    private IPresenterFactory mPresenterFactory;
+    private ACPresenterFactory mPresenterFactory;
     private String mUserAlias;
     private String mQuery;
     private SearchView mSearchView;
@@ -58,8 +57,8 @@ public class HomeActivity extends AppCompatActivity implements RecyclerFragment.
         mUserAlias = getIntent().getExtras().getString("USER_NAME");
         System.out.println("home user alias " + mUserAlias);
 
-        mPresenterFactory = new PresenterFactory();
-        mHomePresenter = (HomePresenter) mPresenterFactory.createPresenter(Global.HomeActivity,  this);
+        mHomePresenter = (HomePresenter)
+                ACPresenterFactory.getInstance().createPresenter(Global.HomeActivity, this);
 
         //this is what blows up the feed fragment
         SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(this, getSupportFragmentManager(), mUserAlias, "FEED");

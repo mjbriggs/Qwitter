@@ -22,6 +22,7 @@ public class Image implements IAttachment
 
     public Image(String mUsername)
     {
+        mImagePath = "";
         setUsername(mUsername);
     }
     public void setUsername(String username)
@@ -118,5 +119,15 @@ public class Image implements IAttachment
             return false;
 
         return true;
+    }
+
+    public void setFilePath(String mImagePath)
+    {
+        this.mImagePath = mImagePath;
+    }
+
+    public String getFilePath()
+    {
+        return mImagePath;
     }
 }

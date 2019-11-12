@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.michael.qwitter.Presenter.PresenterFactory.ACPresenterFactory;
 import com.michael.qwitter.Presenter.PresenterInterfaces.IRegistrationPresenter;
 import com.michael.qwitter.Presenter.RegistrationPresenter;
 import com.michael.qwitter.R;
@@ -45,6 +46,8 @@ public class NewUserInfoActivity extends AppCompatActivity implements IRegistrat
 
 
         mNewUserInfoPresenter = new RegistrationPresenter(this);
+        mNewUserInfoPresenter = (IRegistrationPresenter)
+                ACPresenterFactory.getInstance().createPresenter(Global.IRegistrationView, this);
 
         mProfilePicture = findViewById(R.id.create_profile_picture);
 
@@ -101,6 +104,7 @@ public class NewUserInfoActivity extends AppCompatActivity implements IRegistrat
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data)
     {
+        super.onActivityResult(requestCode, resultCode, data);
         mNewUserInfoPresenter.savePicture(requestCode, resultCode, data);
     }
 

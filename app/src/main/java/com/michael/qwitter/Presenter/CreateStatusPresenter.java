@@ -4,6 +4,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
 import com.michael.qwitter.DummyData.UserDatabase;
+import com.michael.qwitter.GatewayFacade.Accessor;
+import com.michael.qwitter.GatewayFacade.IAccessor;
 import com.michael.qwitter.Model.Image;
 import com.michael.qwitter.Model.Status;
 import com.michael.qwitter.Model.User;
@@ -13,12 +15,12 @@ public class CreateStatusPresenter
     private UserDatabase mUserDatabase;
     private User mStatusUser;
     private Status mStatus;
+    private IAccessor mAccessor;
 
     public CreateStatusPresenter()
     {
-        mUserDatabase = UserDatabase.getInstance();
-        System.out.println(mUserDatabase.getUsers().toString());
         mStatusUser = new User("","");
+        mAccessor = new Accessor();
     }
 
     //get name, alias, image
@@ -41,9 +43,10 @@ public class CreateStatusPresenter
     }
     public void addStatusToUser()
     {
-        mStatusUser.addStatusToStory(mStatus);
-        //mStatusUser.addStatusToFeed(mStatus);
-        mUserDatabase.updateUser(mStatusUser.getUserAlias(), mStatusUser);
+//        mStatusUser.addStatusToStory(mStatus);
+//        //mStatusUser.addStatusToFeed(mStatus);
+//        mUserDatabase.updateUser(mStatusUser.getUserAlias(), mStatusUser);
+        mAccessor.addStatus(mStatusUser.getUserAlias(), mStatus);
     }
 
     public User getStatusUser()
@@ -58,8 +61,7 @@ public class CreateStatusPresenter
 
     public void setStatusUser(String mStatusUser)
     {
-        System.out.println(mUserDatabase.getUser(mStatusUser).toString());
-        this.mStatusUser = mUserDatabase.getUser(mStatusUser);
+        this.mStatusUser = mAccessor.getUserInfo(mStatusUser);
     }
 
     public Status getStatus()

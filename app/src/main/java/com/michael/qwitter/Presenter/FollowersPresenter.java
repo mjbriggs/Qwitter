@@ -1,26 +1,36 @@
 package com.michael.qwitter.Presenter;
 
-import com.michael.qwitter.DummyData.DummyUserDatabase;
-import com.michael.qwitter.DummyData.UserDatabase;
+import com.michael.qwitter.GatewayFacade.Accessor;
+import com.michael.qwitter.GatewayFacade.IAccessor;
 import com.michael.qwitter.Model.Followers;
 import com.michael.qwitter.Model.Following;
+import com.michael.qwitter.Model.User;
 import com.michael.qwitter.Presenter.PresenterInterfaces.RelationPresenter;
+import com.michael.qwitter.Utils.PageTracker;
 
 public class FollowersPresenter implements RelationPresenter
 {
 
     private Followers mFollowers;
-    private DummyUserDatabase mUserDatabase;
+    private IAccessor mAccessor;
+    private String mUsername;
 
     public FollowersPresenter(String username)
     {
-        mUserDatabase = UserDatabase.getInstance();
-        mFollowers = mUserDatabase.getUser(username).getFollowers();
+        mAccessor = new Accessor();
+        mUsername = username;
+
     }
 
     @Override
     public Followers getFollowers()
     {
+        if(mFollowers == null)
+        {
+            mFollowers = new Followers();
+            this.update(mUsername);
+        }
+
         return mFollowers;
     }
 
@@ -37,5 +47,16 @@ public class FollowersPresenter implements RelationPresenter
         }
 
         return null;
+    }
+
+    @Override
+    public void update(String username)
+    {
+        Followers newFollowers = mAccessor.getFollowers(username, PageTracker.getInstance().getFollowersLastKey());
+        PageTracker.getInstance().addFollowersLastKey(newFollowers.getFollowers().size());
+        for (User user : newFollowers.getFollowers())
+        {
+            mFollowers.addFollower(user);
+        }
     }
 }

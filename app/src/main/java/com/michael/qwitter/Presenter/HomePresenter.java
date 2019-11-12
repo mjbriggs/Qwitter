@@ -4,7 +4,10 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.widget.SearchView;
 
+import com.amazonaws.mobile.client.AWSMobileClient;
 import com.michael.qwitter.DummyData.UserDatabase;
+import com.michael.qwitter.GatewayFacade.Accessor;
+import com.michael.qwitter.GatewayFacade.IAccessor;
 import com.michael.qwitter.Model.ModelInterfaces.IAuthentication;
 import com.michael.qwitter.Model.User;
 import com.michael.qwitter.Presenter.PresenterInterfaces.IHomePresenter;
@@ -18,12 +21,14 @@ public class HomePresenter implements IHomePresenter
     private User mHomeUser;
     private IHomeView mHomeView;
     private IAuthentication mAuthenticationHandler;
+    private IAccessor mAccessor;
 
     //TODO talk to adapter to update status list, for now I'll just print the list of statuses
     public HomePresenter()
     {
         mUserDatabase = UserDatabase.getInstance();
         mHomeUser = null;
+        mAccessor = new Accessor();
     }
 
     public HomePresenter(IHomeView view)
@@ -68,6 +73,7 @@ public class HomePresenter implements IHomePresenter
         {
             mHomeUser.setAuthToken("");
             mUserDatabase.updateUser(mHomeUser.getUserAlias(), mHomeUser);
+            AWSMobileClient.getInstance().signOut();
         }
         else
         {
@@ -78,7 +84,8 @@ public class HomePresenter implements IHomePresenter
 
     public boolean doesUserExist(String username)
     {
-        return mUserDatabase.userExists(username);
+        User user = mAccessor.getUserInfo(username);
+        return user.getUserAlias().length() > 0;
     }
 
     @Override

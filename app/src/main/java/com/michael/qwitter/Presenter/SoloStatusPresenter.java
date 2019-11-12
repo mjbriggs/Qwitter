@@ -75,5 +75,9 @@ public class SoloStatusPresenter implements StatusPresenter
         return mStatus.getAttachment() != null;
     }
 
+    @Override
+    public void update(String username)
+    {
 
+    }
 }
