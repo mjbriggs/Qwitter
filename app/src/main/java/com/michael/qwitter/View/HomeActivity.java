@@ -46,6 +46,7 @@ public class HomeActivity extends AppCompatActivity implements RecyclerFragment.
     private SearchView mSearchView;
     private PopupWindow mPopupWindow;
     private View mPopupView;
+    private Button mLoadButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -118,6 +119,15 @@ public class HomeActivity extends AppCompatActivity implements RecyclerFragment.
                 mHomePresenter.openView(Global.CreateStatusActivity);
             }
         });
+
+//        mLoadButton = findViewById(R.id.load_button);
+//        mLoadButton.setOnClickListener(new View.OnClickListener()
+//        {
+//            @Override
+//            public void onClick(View v)
+//            {
+//            }
+//        });
 
 
     }

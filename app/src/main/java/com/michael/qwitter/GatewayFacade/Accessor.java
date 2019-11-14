@@ -11,11 +11,9 @@ import com.michael.qwitter.GatewayProxy.GetFollowing;
 import com.michael.qwitter.GatewayProxy.GetStory;
 import com.michael.qwitter.GatewayProxy.GetUserInfo;
 import com.michael.qwitter.GatewayProxy.IsFollowing;
-import com.michael.qwitter.GatewayProxy.ProxyInterfaces.IGetFeed;
 import com.michael.qwitter.GatewayProxy.ProxyInterfaces.IGetFollowers;
 import com.michael.qwitter.GatewayProxy.ProxyInterfaces.IGetFollowing;
 import com.michael.qwitter.GatewayProxy.ProxyInterfaces.IGetStory;
-import com.michael.qwitter.GatewayProxy.ProxyInterfaces.IGetUserInfo;
 import com.michael.qwitter.GatewayProxy.ProxyInterfaces.IIsFollowing;
 import com.michael.qwitter.GatewayProxy.ProxyInterfaces.IProxy;
 import com.michael.qwitter.GatewayProxy.ProxyInterfaces.ISearch;
@@ -31,11 +29,15 @@ import com.michael.qwitter.Model.User;
 import com.michael.qwitter.Utils.Global;
 
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class Accessor implements IAccessor
 {
-    private IGetUserInfo mGetUserInfo;
-    private IGetFeed mGetFeed;
+    private Callable<User> mGetUserInfo;
+    private Callable<Feed> mGetFeed;
     private IGetStory mGetStory;
     private IGetFollowers mGetFollowers;
     private IGetFollowing mGetFollowing;
@@ -47,7 +49,7 @@ public class Accessor implements IAccessor
     private IProxy mUpdateUserInfo;
 
     public Accessor() {}
-    public Accessor(IGetUserInfo getUserInfo, IGetFeed getFeed, IGetStory getStory, IGetFollowers getFollowers,
+    public Accessor(Callable<User> getUserInfo, Callable<Feed> getFeed, IGetStory getStory, IGetFollowers getFollowers,
                     IGetFollowing getFollowing, IIsFollowing isFollowing, IProxy follow, IProxy unfollow, IProxy addStatus,
                     ISearch search, IProxy updateUserInfo)
     {
@@ -68,12 +70,20 @@ public class Accessor implements IAccessor
     {
         if(mGetUserInfo == null)
             mGetUserInfo = new GetUserInfo(username);
+        User user = new User("","");
 
-        mGetUserInfo.execute();
-        User user = mGetUserInfo.getUser();
-
-        while(user.getFirstName() == null && user.getLastName() == null)
-            user = mGetUserInfo.getUser();
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        try
+        {
+            Future<User> future = executorService.submit(mGetUserInfo);
+            Log.i(Global.INFO ," getting user info for " + username);
+            user = future.get();
+        }
+        catch (Exception e)
+        {
+            Log.e(Global.ERROR, e.getMessage(), e);
+        }
+        Log.i(Global.INFO ," got user info for " + username);
 
         return user;
     }
@@ -83,13 +93,30 @@ public class Accessor implements IAccessor
     {
 //        if(mGetFeed == null)
         mGetFeed = new GetFeed(username, lastkey);
+        Feed feed = new Feed();
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        try
+        {
+            Future<Feed> future = executorService.submit(mGetFeed);
+            Log.i(Global.INFO ," getting user info for " + username);
+            feed = future.get();
+        }
+        catch (Exception e)
+        {
+            Log.e(Global.ERROR, e.getMessage(), e);
+        }
+        finally
+        {
+            executorService.shutdown();
+        }
+        Log.i(Global.INFO ," got user info for " + username);
 
-        mGetFeed.execute();
-
-        Feed feed = mGetFeed.getFeed();
-
-        while (feed == null)
-            feed = mGetFeed.getFeed();
+//        mGetFeed.execute();
+//
+//        Feed feed = mGetFeed.getFeed();
+//
+//        while (feed == null)
+//            feed = mGetFeed.getFeed();
 
         return feed;
     }
@@ -99,11 +126,10 @@ public class Accessor implements IAccessor
     {
 //        if(mGetStory == null)
         mGetStory = new GetStory(username, lastKey);
-
+//
         mGetStory.execute();
 
         Story story = mGetStory.getStory();
-
         while (story == null)
             story = mGetStory.getStory();
 
@@ -132,7 +158,7 @@ public class Accessor implements IAccessor
     {
 //        if(mGetFollowing == null)
         mGetFollowing = new GetFollowing(username, lastkey);
-
+//
         mGetFollowing.execute();
 
         Following following = null;

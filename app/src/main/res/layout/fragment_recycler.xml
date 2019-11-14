@@ -21,6 +21,26 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:paddingTop="20dp"
+        android:paddingBottom="50dp"
         xmlns:android="http://schemas.android.com/apk/res/android" />
 
+<!--    <LinearLayout-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent"-->
+<!--        android:visibility="invisible"-->
+<!--        android:id="@+id/fragment_empty">-->
+<!--        <TextView-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="match_parent"-->
+<!--            android:text="Nothing here"-->
+<!--            />-->
+<!--    </LinearLayout>-->
+    <Button
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center"
+        android:text="Load"
+        android:id="@+id/load_button"
+        android:background="@color/colorBlue"
+        android:textColor="@color/button_text_color"/>
 </FrameLayout>

@@ -58,9 +58,6 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
     private String mQuery;
     private RecyclerHolder mLocalHolder;
 
-    /**
-     * In order to adhere to presenter pattern, I will have the local holder be set and then I will set local holder to view holder
-     * */
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
     // you provide access to all the views for a data item in a view holder
@@ -94,10 +91,12 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
         mContext = context;
         mQuery = "";
 
-        mFeedPresenter = new FeedPresenter();
-        mStoryPresenter = new StoryPresenter();
-        mFollowersPresenter = new FollowersPresenter(mUserAlias);
-        mFollowingPresenter = new FollowingPresenter(mUserAlias);
+        mFeedPresenter = new FeedPresenter(this);
+        mStoryPresenter = new StoryPresenter(this);
+        mFollowersPresenter = new FollowersPresenter(mUserAlias, this);
+        mFollowingPresenter = new FollowingPresenter(mUserAlias, this);
+        mSearchPresenter = new SearchPresenter();
+
     }
 
     public RecyclerAdapter(String username, String query, String type, Context context)
@@ -111,11 +110,11 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
         mContext = context;
         mQuery = query;
 
-        mFeedPresenter = new FeedPresenter();
-        mStoryPresenter = new StoryPresenter();
-        mFollowersPresenter = new FollowersPresenter(mUserAlias);
-        mFollowingPresenter = new FollowingPresenter(mUserAlias);
-
+        mFeedPresenter = new FeedPresenter(this);
+        mStoryPresenter = new StoryPresenter(this);
+        mFollowersPresenter = new FollowersPresenter(mUserAlias, this);
+        mFollowingPresenter = new FollowingPresenter(mUserAlias, this);
+        mSearchPresenter = new SearchPresenter(mQuery, this);
         System.out.println("In adapter query is " + mQuery + " and type is " + mFeedType);
     }
 
@@ -123,12 +122,14 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
     {
         if (mFeedType.equalsIgnoreCase(Global.FEED))
             mFeedPresenter.update(mUserAlias);
-        if (mFeedType.equalsIgnoreCase(Global.STORY))
+        else if (mFeedType.equalsIgnoreCase(Global.STORY))
             mStoryPresenter.update(mUserAlias);
-        if (mFeedType.equalsIgnoreCase(Global.FOLLOWERS))
+        else if (mFeedType.equalsIgnoreCase(Global.FOLLOWERS))
             mFollowersPresenter.update(mUserAlias);
-        if (mFeedType.equalsIgnoreCase(Global.FOLLOWING))
+        else if (mFeedType.equalsIgnoreCase(Global.FOLLOWING))
             mFollowingPresenter.update(mUserAlias);
+        else if (mFeedType.equalsIgnoreCase("SEARCH"))
+            mSearchPresenter.update("");
     }
 
 
@@ -174,6 +175,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
             holder.statusImage = holder.layoutView.findViewById(R.id.status_image);
             holder.statusImage.setVisibility(View.INVISIBLE);
             holder.statusContainer = holder.layoutView.findViewById(R.id.status_container);
+            holder.profilePicture = holder.layoutView.findViewById(R.id.status_profile_picture);
 
             ViewGroup.LayoutParams params = holder.layoutView.getLayoutParams();
             // Changes the height and width to the specified *pixels*
@@ -296,7 +298,6 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
             else if(mFeedType.equalsIgnoreCase("SEARCH"))
             {
                 System.out.println("Search feed query is " + mQuery);
-                mSearchPresenter = new SearchPresenter(mQuery);
                 Status stat = mSearchPresenter.getStatuses(mUserAlias).get(position);
                 holder.statusText.setText(mSearchPresenter.getStatuses("").get(position).getText());
                 holder.alias.setText("@" + mSearchPresenter.getStatus(position).getOwner());
@@ -415,6 +416,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
 
             holder.name = holder.layoutView.findViewById(R.id.follow_name);
             holder.alias = holder.layoutView.findViewById(R.id.follow_user_alias);
+            holder.profilePicture = holder.layoutView.findViewById(R.id.follow_profile_picture);
 
             if(mFeedType.equalsIgnoreCase("FOLLOWERS"))
             {
@@ -449,6 +451,15 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
 
     }
 
+    public boolean isEmpty()
+    {
+        if(mFeedType.equalsIgnoreCase(Global.FEED))
+        {
+            return mFeedPresenter.getStatuses(mUserAlias).size() == 0;
+        }
+        return true;
+    }
+
     // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
@@ -457,7 +468,6 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
         {
 //            if(mFeedPresenter == null)
 //                mFeedPresenter = new FeedPresenter();
-
             return mFeedPresenter.getStatuses(mUserAlias).size();
         }
         else if(mFeedType.equalsIgnoreCase("STORY"))
@@ -484,8 +494,8 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
 
         else if(mFeedType.equalsIgnoreCase("SEARCH"))
         {
-            if(mSearchPresenter == null)
-                mSearchPresenter = new SearchPresenter(mQuery);
+//            if(mSearchPresenter == null)
+//                mSearchPresenter = new SearchPresenter(mQuery);
 
             return mSearchPresenter.getStatuses("").size();
         }
@@ -502,7 +512,12 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
     @Override
     public void updateField(String field, Object object)
     {
-
+        if (field.equalsIgnoreCase(Global.FEED) || field.equalsIgnoreCase(Global.STORY) ||
+                field.equalsIgnoreCase(Global.FOLLOWING) || field.equalsIgnoreCase(Global.FOLLOWERS) ||
+                field.equalsIgnoreCase("SEARCH"))
+        {
+            this.notifyDataSetChanged();
+        }
     }
 
     @Override

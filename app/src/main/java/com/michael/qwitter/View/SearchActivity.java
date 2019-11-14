@@ -1,6 +1,8 @@
 package com.michael.qwitter.View;
 
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -18,6 +20,7 @@ public class SearchActivity extends AppCompatActivity implements RecyclerFragmen
     private String mQuery;
     private TextView mQueryView;
     private RecyclerFragment rf;
+    private Button mBackButton;
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -33,6 +36,16 @@ public class SearchActivity extends AppCompatActivity implements RecyclerFragmen
 
        mQueryView = findViewById(R.id.search_type);
        mQueryView.setText(mQuery);
+
+       mBackButton = findViewById(R.id.search_back_button);
+       mBackButton.setOnClickListener(new View.OnClickListener()
+       {
+           @Override
+           public void onClick(View v)
+           {
+               finish();
+           }
+       });
 
        rf = RecyclerFragment.newInstance(mUserAlias, mQuery, mType);
 

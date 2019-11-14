@@ -15,6 +15,8 @@ import com.michael.qwitter.R;
 import com.michael.qwitter.Utils.Global;
 import com.michael.qwitter.View.ViewInterfaces.IHomeView;
 
+import static com.amazonaws.mobile.auth.core.internal.util.ThreadUtils.runOnUiThread;
+
 public class HomePresenter implements IHomePresenter
 {
     private UserDatabase mUserDatabase;
@@ -71,8 +73,8 @@ public class HomePresenter implements IHomePresenter
     {
         if(mHomeUser != null)
         {
-            mHomeUser.setAuthToken("");
-            mUserDatabase.updateUser(mHomeUser.getUserAlias(), mHomeUser);
+//            mHomeUser.setAuthToken("");
+//            mUserDatabase.updateUser(mHomeUser.getUserAlias(), mHomeUser);
             AWSMobileClient.getInstance().signOut();
         }
         else
@@ -113,41 +115,96 @@ public class HomePresenter implements IHomePresenter
     @Override
     public void openView(String view)
     {
-        if(view.equals(Global.CreateStatusActivity))
+        final String fView = view;
+        new Thread(new Runnable()
         {
-            if(!mAuthenticationHandler.authenticated())
+            @Override
+            public void run()
             {
-                Log.i(Global.ERROR, mHomeView.user() + " does not have permission to create a status");
-                return;
+                if(fView.equals(Global.CreateStatusActivity))
+                {
+                    if(!mAuthenticationHandler.authenticated())
+                    {
+                        Log.i(Global.ERROR, mHomeView.user() + " does not have permission to create a status");
+                        return;
+                    }
+                }
+                runOnUiThread(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        mHomeView.goTo(fView);
+                    }
+                });
             }
-        }
-        mHomeView.goTo(view);
+        }).start();
+
     }
 
     @Override
     public void handleQuery(String query)
     {
-        if(query.charAt(0) == '@')
+        final String fQuery = query;
+        new Thread(new Runnable()
         {
-            if(this.doesUserExist(query.substring(1)))
+            @Override
+            public void run()
             {
-                mHomeView.goTo(Global.ProfileActivity);
-                mHomeView.updateField(SearchView.class.toString(), "");
+                if(fQuery.charAt(0) == '@')
+                {
+                    if(doesUserExist(fQuery.substring(1)))
+                    {
+                        runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                mHomeView.goTo(Global.ProfileActivity);
+                                mHomeView.updateField(SearchView.class.toString(), "");
+                            }
+                        });
+
+                    }
+                    else
+                    {
+                        runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                mHomeView.postToast(fQuery + " cannot be found");
+                            }
+                        });
+                    }
+                }
+                else if(fQuery.charAt(0) == '#')
+                {
+                    runOnUiThread(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            mHomeView.goTo(Global.SearchActivity);
+                            mHomeView.updateField(SearchView.class.toString(), "");
+                        }
+                    });
+
+                }
+                else
+                {
+                    runOnUiThread(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            mHomeView.postToast("search format not supported");
+                        }
+                    });
+                }
             }
-            else
-            {
-                mHomeView.postToast(query + " cannot be found");
-            }
-        }
-        else if(query.charAt(0) == '#')
-        {
-            mHomeView.goTo(Global.SearchActivity);
-            mHomeView.updateField(SearchView.class.toString(), "");
-        }
-        else
-        {
-            mHomeView.postToast("search format not supported");
-        }
+        }).start();
+
 
     }
 }

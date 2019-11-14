@@ -46,7 +46,14 @@ public class CreateStatusPresenter
 //        mStatusUser.addStatusToStory(mStatus);
 //        //mStatusUser.addStatusToFeed(mStatus);
 //        mUserDatabase.updateUser(mStatusUser.getUserAlias(), mStatusUser);
-        mAccessor.addStatus(mStatusUser.getUserAlias(), mStatus);
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                mAccessor.addStatus(mStatusUser.getUserAlias(), mStatus);
+            }
+        }).start();
     }
 
     public User getStatusUser()
@@ -59,9 +66,18 @@ public class CreateStatusPresenter
         this.mStatusUser = mStatusUser;
     }
 
-    public void setStatusUser(String mStatusUser)
+    public void setStatusUser(String statusUserIn)
     {
-        this.mStatusUser = mAccessor.getUserInfo(mStatusUser);
+        mStatusUser = mAccessor.getUserInfo(statusUserIn);
+
+//        final String statusUser = statusUserIn;
+//        new Thread(new Runnable()
+//        {
+//            @Override
+//            public void run()
+//            {
+//            }
+//        }).start();
     }
 
     public Status getStatus()

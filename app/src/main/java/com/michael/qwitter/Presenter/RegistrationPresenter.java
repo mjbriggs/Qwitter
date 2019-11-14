@@ -65,7 +65,14 @@ public class RegistrationPresenter extends AsyncTask<String, Integer, String> im
         mUser.setPassword(password);
         mUser.setAuthToken(mUserDatabase.generateAuthToken());
 //        mUserDatabase.addUser(mUser);
-        mAccessor.updateUserInfo(mUser);
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                mAccessor.updateUserInfo(mUser);
+            }
+        }).start();
     }
 
     @Override
@@ -96,7 +103,16 @@ public class RegistrationPresenter extends AsyncTask<String, Integer, String> im
         User user = new User(username, "");
         user.setFirstName(firstName);
         user.setLastName(lastName);
-        mAccessor.updateUserInfo(user);
+
+        final User fUser = user;
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                mAccessor.updateUserInfo(fUser);
+            }
+        }).start();
 //        user.setProfilePicture(mProfilePicture);
 //        mUserDatabase.updateUser(username, user);
 ////        mProfilePicture.setImagePath(mProfilePicturePath);
@@ -146,7 +162,6 @@ public class RegistrationPresenter extends AsyncTask<String, Integer, String> im
                             @Override
                             public void onResult(final SignInResult signInResult)
                             {
-
                                 runOnUiThread(new Runnable()
                                 {
                                     @Override
@@ -157,7 +172,42 @@ public class RegistrationPresenter extends AsyncTask<String, Integer, String> im
                                         {
                                             case DONE:
 
-                                                doInBackground("login", username);
+                                                new Thread(new Runnable()
+                                                {
+                                                    @Override
+                                                    public void run()
+                                                    {
+                                                        final User loggedUser = mAccessor.getUserInfo(username);
+
+                                                        runOnUiThread(new Runnable()
+                                                        {
+                                                            @Override
+                                                            public void run()
+                                                            {
+                                                                if(loggedUser.getFirstName() == null ||
+                                                                loggedUser.getLastName() == null)
+                                                                {
+                                                                    mRegistrationView.postToast("Unsuccessful login attempt");
+                                                                }
+                                                                else
+                                                                {
+                                                                    if(loggedUser.getFirstName().length() == 0 ||
+                                                                            loggedUser.getLastName().length() == 0) //will also check profile picture
+                                                                    {
+                                                                        mRegistrationView.goTo(Global.NewUserInfoActivity);
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        mRegistrationView.goTo(Global.HomeActivity);
+                                                                    }
+                                                                }
+
+                                                            }
+                                                        });
+
+                                                    }
+                                                }).start();
+
                                                 break;
                                             default:
                                                 mRegistrationView.postToast("Unsupported sign-in confirmation: " + signInResult.getSignInState());
@@ -231,14 +281,17 @@ public class RegistrationPresenter extends AsyncTask<String, Integer, String> im
                                         addUser(username, password);
 
                                         mRegistrationView.goTo(Global.VerifyPopUp);
+
                                     }
                                     else
                                     {
                                         mRegistrationView.postToast("Sign-up done.");
 
                                         addUser(username, password);
+
                                         mRegistrationView.goTo(Global.NewUserInfoActivity);
                                         mRegistrationView.postToast(username + " is logged in");
+
 
                                     }
                                 }
@@ -248,6 +301,7 @@ public class RegistrationPresenter extends AsyncTask<String, Integer, String> im
                         public void onError(Exception e)
                         {
                             Log.e(TAG, "Sign-up error", e);
+                            mRegistrationView.postToast("Sign-up error");
 //                            mRegistrationView.postToast(username + " " + e.getMessage());
                         }
                     });

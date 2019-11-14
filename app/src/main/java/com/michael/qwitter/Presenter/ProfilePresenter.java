@@ -11,6 +11,8 @@ import com.michael.qwitter.View.ViewInterfaces.IProfileView;
 
 import java.util.ArrayList;
 
+import static com.amazonaws.mobile.auth.core.internal.util.ThreadUtils.runOnUiThread;
+
 public class ProfilePresenter implements IProfilePresenter
 {
     private UserDatabase mUserDatabase;
@@ -119,53 +121,102 @@ public class ProfilePresenter implements IProfilePresenter
         ArrayList<String> info = mProfileView.profileInfo();
         assert info.size() == 2;
 
-        String username = info.get(0);
-        String loggedUser = info.get(1);
+        final String username = info.get(0);
+        final String loggedUser = info.get(1);
         mFollowUserAlias = username;
         mLoggedUserAlias = loggedUser;
 
-        if(mAuthenticationHandler.authenticated())
+        new Thread(new Runnable()
         {
-            if(mFollowed)
+            @Override
+            public void run()
             {
-                unfollow(username, loggedUser);
-                mProfileView.updateField("R.id.follow_button", "follow");
+                if(mAuthenticationHandler.authenticated())
+                {
+                    if(mFollowed)
+                    {
+                        unfollow(username, loggedUser);
+                        runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                mProfileView.updateField("R.id.follow_button", "follow");
+                            }
+                        });
+                    }
+                    else
+                    {
+                        follow(username, loggedUser);
+                        runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                mProfileView.updateField("R.id.follow_button", "un-follow");
+                            }
+                        });
+                    }
+                }
             }
-            else
-            {
-                follow(username, loggedUser);
-                mProfileView.updateField("R.id.follow_button", "un-follow");
-            }
-        }
+        }).start();
+
     }
 
     @Override
     public void setProfileInfo()
     {
-        ArrayList<String> info = mProfileView.profileInfo();
-        assert info.size() == 2;
-        String username = info.get(0);
-        String loggedUser = info.get(1);
-        mFollowUserAlias = username;
-        mLoggedUserAlias = loggedUser;
-        this.grabUser(username);
-        mProfileView.updateField("R.id.follow_name", mUser.getFirstName() + " " + mUser.getLastName());
-        mProfileView.updateField("R.id.follow_user_alias", username);
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                ArrayList<String> info = mProfileView.profileInfo();
+                assert info.size() == 2;
+                String username = info.get(0);
+                String loggedUser = info.get(1);
+                mFollowUserAlias = username;
+                mLoggedUserAlias = loggedUser;
+                grabUser(username);
+                final String fUsername = username;
+                final String fLoggedUser = loggedUser;
+                runOnUiThread(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        mProfileView.updateField("R.id.follow_name", mUser.getFirstName() + " " + mUser.getLastName());
+                        mProfileView.updateField("R.id.follow_user_alias", fUsername);
+                    }
+                });
 
-        this.isFollowed(loggedUser);
 
-        if(username.equalsIgnoreCase(loggedUser) || !mAuthenticationHandler.authenticated())
-        {
-            mProfileView.updateField("Hide.R.id.follow_button", null);
-        }
-        else if(mFollowed)
-        {
-            mProfileView.updateField("R.id.follow_button", "un-follow");
-        }
-        else
-        {
-            mProfileView.updateField("R.id.follow_button", "follow");
-        }
+                isFollowed(loggedUser);
+
+
+                runOnUiThread(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        if(fUsername.equalsIgnoreCase(fLoggedUser) || !mAuthenticationHandler.authenticated())
+                        {
+                            mProfileView.updateField("Hide.R.id.follow_button", null);
+                        }
+                        else if(mFollowed)
+                        {
+                            mProfileView.updateField("R.id.follow_button", "un-follow");
+                        }
+                        else
+                        {
+                            mProfileView.updateField("R.id.follow_button", "follow");
+                        }
+                    }
+                });
+
+            }
+        }).start();
+
 
     }
 

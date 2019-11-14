@@ -22,6 +22,7 @@ import com.michael.qwitter.Presenter.PresenterInterfaces.IProfilePresenter;
 import com.michael.qwitter.Presenter.ProfilePresenter;
 import com.michael.qwitter.R;
 import com.michael.qwitter.Utils.Global;
+import com.michael.qwitter.Utils.PageTracker;
 import com.michael.qwitter.View.ViewInterfaces.IProfileView;
 import com.michael.qwitter.View.ui.main.SectionsPagerAdapter;
 
@@ -40,12 +41,20 @@ public class ProfileActivity extends HomeActivity implements IProfileView
     private IProfilePresenter mProfilePresenter;
     private ACPresenterFactory mPresenterFactory;
     private String mLoggedUser;
+    private String mOldFeedKey;
+    private String mOldStoryKey;
+    private String mOldFollowersKey;
+    private String mOldFollowingKey;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+        mOldFeedKey = PageTracker.getInstance().getFeedLastKey();
+        mOldStoryKey = PageTracker.getInstance().getStoryLastKey();
+        mOldFollowersKey = PageTracker.getInstance().getFollowersLastKey();
+        mOldFollowingKey = PageTracker.getInstance().getFollowingLastKey();
 
         mProfilePresenter = (ProfilePresenter)
                 ACPresenterFactory.getInstance().createPresenter(Global.ProfileActivity, this);
@@ -59,6 +68,7 @@ public class ProfileActivity extends HomeActivity implements IProfileView
         mUserInfoLayout = findViewById(R.id.profile_info_container);
         mUserInfoLayout.setVisibility(View.VISIBLE);
         mUserInfoLayout.setMinimumHeight(300);
+
 
         mFollowLayout = findViewById(R.id.follow_view);
         mFollowLayout.setBackgroundColor(Color.WHITE);
@@ -90,6 +100,10 @@ public class ProfileActivity extends HomeActivity implements IProfileView
             @Override
             public void onClick(View v)
             {
+                PageTracker.getInstance().setFeedLastKey(Integer.parseInt(mOldFeedKey));
+                PageTracker.getInstance().setStoryLastKey(Integer.parseInt(mOldStoryKey));
+                PageTracker.getInstance().setFollowingLastKey(Integer.parseInt(mOldFollowingKey));
+                PageTracker.getInstance().setFollowersLastKey(Integer.parseInt(mOldFollowersKey));
                 finish();
             }
         });
@@ -103,6 +117,7 @@ public class ProfileActivity extends HomeActivity implements IProfileView
         SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(this, getSupportFragmentManager(), mUserAlias, "FEED");
         ViewPager viewPager = findViewById(R.id.view_pager);
         viewPager.setAdapter(sectionsPagerAdapter);
+        viewPager.setPadding(0, 0, 0, 300);
         TabLayout tabs = findViewById(R.id.tabs);
         tabs.setupWithViewPager(viewPager);
         tabs.setSelectedTabIndicatorColor(Color.WHITE);

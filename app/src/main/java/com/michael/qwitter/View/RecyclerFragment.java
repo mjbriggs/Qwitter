@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
@@ -33,7 +34,7 @@ public class RecyclerFragment extends Fragment implements IView
     private String mUserAlias;
     private String mFeedType;
     private String mQuery;
-
+    private Button mLoadButton;
 
     public RecyclerFragment()
     {
@@ -126,17 +127,41 @@ public class RecyclerFragment extends Fragment implements IView
         mRecyclerView.setAdapter(mAdapter);
         System.out.println("Adapter is set");
 
-        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
-                super.onScrollStateChanged(recyclerView, newState);
+//        if(mAdapter.isEmpty())
+//        {
+//            mRecyclerView.setVisibility(View.INVISIBLE);
+//            mEmptyLayout.setVisibility(View.VISIBLE);
+//        }
+//        else
+//        {
+//            mRecyclerView.setVisibility(View.VISIBLE);
+//            mEmptyLayout.setVisibility(View.INVISIBLE);
+//        }
 
-                if (!recyclerView.canScrollVertically(1)) {
-                    mAdapter.update();
-                    mAdapter.notifyDataSetChanged();
-                }
+//        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+//            @Override
+//            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+//                super.onScrollStateChanged(recyclerView, newState);
+//
+//                if (!recyclerView.canScrollVertically(1)) {
+//                }
+//            }
+//        });
+
+        mLoadButton = view.findViewById(R.id.load_button);
+        mLoadButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+//                mLoadButton.setTextColor(Color.BLACK);
+//                mLoadButton.setBackgroundColor(Color.WHITE);
+                mAdapter.update();
+//                mLoadButton.setTextColor(Color.WHITE);
+//                mLoadButton.setBackgroundResource(R.color.colorBlue);
             }
         });
+
 
         return view;
     }

@@ -9,9 +9,12 @@ import com.michael.qwitter.Model.User;
 import com.michael.qwitter.Presenter.PresenterInterfaces.StatusPresenter;
 import com.michael.qwitter.Utils.Global;
 import com.michael.qwitter.Utils.PageTracker;
+import com.michael.qwitter.View.ViewInterfaces.IView;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.amazonaws.mobile.auth.core.internal.util.ThreadUtils.runOnUiThread;
 
 public class FeedPresenter implements StatusPresenter
 {
@@ -19,21 +22,29 @@ public class FeedPresenter implements StatusPresenter
     private List<Status> mFeedList;
     private IAccessor mAccessor;
     private int lastkey;
+    private IView mFeedView;
 
     public FeedPresenter()
     {
+        PageTracker.getInstance().setFeedLastKey(0);
         mFeedList = new ArrayList<>();
         mAccessor = new Accessor();
         mUserFullName = "";
         lastkey = 0;
+    }
+
+    public FeedPresenter(IView feedView)
+    {
+        this();
+        mFeedView = feedView;
     }
     @Override
     public List<Status> getStatuses(String username)
     {
 //        User user = mUserDatabase.getUser(username);
 
-        if(mFeedList.size() == 0)
-            this.update(username);
+//        if(mFeedList.size() == 0)
+//            this.update(username);
 
         return mFeedList;
     }
@@ -49,26 +60,41 @@ public class FeedPresenter implements StatusPresenter
     {
         Status status = mFeedList.get(position);
         User user = mAccessor.getUserInfo(status.getOwner());
+//        mUserFullName = status.getOwnerName();
         mUserFullName = user.getFirstName() + " " + user.getLastName();
 //        System.out.println("returning " + status.getOwner() + " as status owner");
         return status.getOwner();
     }
 
     @Override
-    public void update(String username)
+    public void update(String usernameIn)
     {
-        User user = mAccessor.getUserInfo(username);
+        //TODO handle null results when network is down
+        final String username = usernameIn;
+        new Thread(new Runnable() {
+            public void run() {
+                User user = mAccessor.getUserInfo(username);
 
-        mUserFullName = user.getFirstName() + " " + user.getLastName();
+                mUserFullName = user.getFirstName() + " " + user.getLastName();
 
-        String lk = PageTracker.getInstance().getFeedLastKey();
-        Log.i(Global.INFO, "lk before update is " + PageTracker.getInstance().getFeedLastKey());
-        List<Status> newStatuses = mAccessor.getFeed(username, lk).getStatusList();
-        lastkey += newStatuses.size();
-        PageTracker.getInstance().addFeedLastKey(newStatuses.size());
-        Log.i(Global.INFO, "lk after update is " + PageTracker.getInstance().getFeedLastKey());
+                String lk = PageTracker.getInstance().getFeedLastKey();
+                Log.i(Global.INFO, "lk before update is " + PageTracker.getInstance().getFeedLastKey());
+                List<Status> newStatuses = mAccessor.getFeed(username, lk).getStatusList();
+                lastkey += newStatuses.size();
+                PageTracker.getInstance().addFeedLastKey(newStatuses.size());
+                Log.i(Global.INFO, "lk after update is " + PageTracker.getInstance().getFeedLastKey());
 
-        mFeedList.addAll(newStatuses);
+                mFeedList.addAll(newStatuses);
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run()
+                    {
+                        mFeedView.updateField(Global.FEED, null);
+                    }
+                });
+            }
+        }).start();
     }
 
     public Status getStatus(int position)
