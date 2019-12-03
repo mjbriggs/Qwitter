@@ -1,7 +1,5 @@
 package com.michael.qwitter.Presenter;
 
-import android.util.Log;
-
 import com.michael.qwitter.GatewayFacade.Accessor;
 import com.michael.qwitter.GatewayFacade.IAccessor;
 import com.michael.qwitter.Model.Status;
@@ -23,6 +21,7 @@ public class StoryPresenter implements StatusPresenter
     private List<Status> mStoryList;
     private IAccessor mAccessor;
     private IView mStoryView;
+    private List<String> mProfileLinks;
 
     public StoryPresenter()
     {
@@ -30,6 +29,7 @@ public class StoryPresenter implements StatusPresenter
         mUserFullName = " ";
         mAccessor = new Accessor();
         mStoryList = new ArrayList<>();
+        mProfileLinks = new ArrayList<>();
     }
 
     public StoryPresenter(IView storyView)
@@ -72,12 +72,21 @@ public class StoryPresenter implements StatusPresenter
 
                 mUserFullName = user.getFirstName() + " " + user.getLastName();
 
-                String lk = PageTracker.getInstance().getStoryLastKey();
-                Log.i(Global.INFO, "story lk before update is " + PageTracker.getInstance().getStoryLastKey());
+                String lk = "";
+                if (mStoryList.size() > 0)
+                {
+                    lk = mStoryList.get(mStoryList.size() - 1).getTimestamp();
+                }
+//                Log.i(Global.INFO, "story lk before update is " + PageTracker.getInstance().getStoryLastKey());
                 List<Status> newStatuses = mAccessor.getStory(username, lk).getStatuses();
-                PageTracker.getInstance().addStoryLastKey(newStatuses.size());
-                Log.i(Global.INFO, "story lk after update is " + PageTracker.getInstance().getStoryLastKey());
+//                PageTracker.getInstance().addStoryLastKey(newStatuses.size());
+//                Log.i(Global.INFO, "story lk after update is " + PageTracker.getInstance().getStoryLastKey());
 
+                for (Status status: newStatuses)
+                {
+                  mProfileLinks.add(mAccessor.getUserInfo(username).getProfilePicture().getFilePath());
+
+                }
                 mStoryList.addAll(newStatuses);
 
                 runOnUiThread(new Runnable() {
@@ -90,5 +99,17 @@ public class StoryPresenter implements StatusPresenter
             }
         }).start();
 
+    }
+
+    @Override
+    public String getUserProfilePic(int pos)
+    {
+        return mProfileLinks.get(pos);
+    }
+
+    @Override
+    public String getNameAt(int pos)
+    {
+        return null;
     }
 }

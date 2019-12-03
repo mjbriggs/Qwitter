@@ -10,6 +10,8 @@ public interface IRegistrationPresenter
     void addUser(String username, String password);
     String validateUser(String username, String password);
     void updateUserInfo(String username, String firstName, String lastName); //TODO pass in attachment arg as well
+    void updateUserInfo(String username, String firstName, String lastName, String email, Bitmap profilePicture);
+
     /**
      * has nothing to do with user authentication, merely determines if user has a name, email and photo associated with them
      * */

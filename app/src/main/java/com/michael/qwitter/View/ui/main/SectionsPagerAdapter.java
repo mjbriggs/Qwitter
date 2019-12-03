@@ -10,6 +10,7 @@ import androidx.fragment.app.FragmentPagerAdapter;
 
 import com.michael.qwitter.R;
 import com.michael.qwitter.View.RecyclerFragment;
+import com.michael.qwitter.View.ViewInterfaces.IView;
 
 /**
  * A [FragmentPagerAdapter] that returns a fragment corresponding to
@@ -23,14 +24,16 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter
             R.string.followers_text, R.string.following_text};
     private final Context mContext;
     private String mUserAlias;
+    private IView mHomeView;
     private String mType;
 
-    public SectionsPagerAdapter(Context context, FragmentManager fm, String username, String type)
+    public SectionsPagerAdapter(Context context, FragmentManager fm, String username, String type, IView view)
     {
         super(fm);
         mContext = context;
         mUserAlias = username;
         mType = type;
+        mHomeView = view;
     }
 
     @Override
@@ -42,25 +45,25 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter
         {
 //            Toast toast = Toast.makeText(mContext, "FEED", Toast.LENGTH_SHORT);
 //            toast.show();
-            return RecyclerFragment.newInstance(mUserAlias, "FEED");
+            return RecyclerFragment.newInstance(mUserAlias, "FEED", mHomeView);
         }
         else if (position == 1)
         {
 //            Toast toast = Toast.makeText(mContext, "STORY", Toast.LENGTH_SHORT);
 //            toast.show();
-            return RecyclerFragment.newInstance(mUserAlias, "STORY");
+            return RecyclerFragment.newInstance(mUserAlias, "STORY", mHomeView);
         }
         else if (position == 2)
         {
 //            Toast toast = Toast.makeText(mContext, "FOLLOWERS", Toast.LENGTH_SHORT);
 //            toast.show();
-            return RecyclerFragment.newInstance(mUserAlias, "FOLLOWERS");
+            return RecyclerFragment.newInstance(mUserAlias, "FOLLOWERS", mHomeView);
         }
         else
         {
 //            Toast toast = Toast.makeText(mContext, "FOLLOWING", Toast.LENGTH_SHORT);
 //            toast.show();
-            return RecyclerFragment.newInstance(mUserAlias, "FOLLOWING");
+            return RecyclerFragment.newInstance(mUserAlias, "FOLLOWING", mHomeView);
         }
 
 

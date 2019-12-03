@@ -16,6 +16,7 @@ import com.amazonaws.mobile.client.results.UserCodeDeliveryDetails;
 import com.michael.qwitter.DummyData.UserDatabase;
 import com.michael.qwitter.GatewayFacade.Accessor;
 import com.michael.qwitter.GatewayFacade.IAccessor;
+import com.michael.qwitter.Model.Image;
 import com.michael.qwitter.Model.User;
 import com.michael.qwitter.Presenter.PresenterInterfaces.IRegistrationPresenter;
 import com.michael.qwitter.Utils.Global;
@@ -118,6 +119,29 @@ public class RegistrationPresenter extends AsyncTask<String, Integer, String> im
 ////        mProfilePicture.setImagePath(mProfilePicturePath);
 //        System.out.println("Updated user info \n" + mUserDatabase.getUser(username).toString());
     }
+
+    @Override
+    public void updateUserInfo(String username, String firstName, String lastName, String email, Bitmap profilePicture)
+    {
+        User user = new User(username, "");
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        user.setUserEmail(email);
+        Image img = new Image(username);
+        img.setBitMap(profilePicture);
+        user.setProfilePicture(img);
+
+        final User fUser = user;
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                mAccessor.updateUserInfo(fUser);
+            }
+        }).start();
+    }
+
     @Override
     public boolean checkUserCompleted(String username)
     {
@@ -250,62 +274,58 @@ public class RegistrationPresenter extends AsyncTask<String, Integer, String> im
                     && email.length() > 0 && username.length() > 0 && password.length() > 7
                     && email.contains("@") && email.contains("."))
             {
-                //TODO do I add email to database or does cognito handle that?
-//                String userToken = this.validateUser(username, password);
-//                mUserCompleted = false;
-//
-//                if (userToken.length() > 0)
-//                {
-//                    mRegistrationView.postToast(username + " already exists");
-//                }
-//                else
-//                {
-                    final Map<String, String> attributes = new HashMap<>();
-                    attributes.put("email", email);
-                    AWSMobileClient.getInstance().signUp(username, password, attributes, null, new Callback<SignUpResult>() {
-                        @Override
-                        public void onResult(final SignUpResult signUpResult)
+                final Map<String, String> attributes = new HashMap<>();
+                attributes.put("email", email);
+                AWSMobileClient.getInstance().signUp(username, password, attributes, null, new Callback<SignUpResult>() {
+                    @Override
+                    public void onResult(final SignUpResult signUpResult)
+                    {
+                        runOnUiThread(new Runnable()
                         {
-                            runOnUiThread(new Runnable()
+                            @Override
+                            public void run()
                             {
-                                @Override
-                                public void run()
+                                Log.d(TAG, "Sign-up callback state: " + signUpResult.getConfirmationState());
+                                if (!signUpResult.getConfirmationState())
                                 {
-                                    Log.d(TAG, "Sign-up callback state: " + signUpResult.getConfirmationState());
-                                    if (!signUpResult.getConfirmationState())
-                                    {
-                                        final UserCodeDeliveryDetails details = signUpResult.getUserCodeDeliveryDetails();
-                                        mRegistrationView.postToast("Confirm sign-up with: " + details.getDestination());
-                                        Log.i(Global.USER_STATE, "Confirm sign-up with: " + details.getDestination());
+                                    final UserCodeDeliveryDetails details = signUpResult.getUserCodeDeliveryDetails();
+                                    mRegistrationView.postToast("Confirm sign-up with: " + details.getDestination());
+                                    Log.i(Global.USER_STATE, "Confirm sign-up with: " + details.getDestination());
 
-                                        addUser(username, password);
+//                                    addUser(username, password);
 
-                                        mRegistrationView.goTo(Global.VerifyPopUp);
+                                    mRegistrationView.goTo(Global.VerifyPopUp);
 
-                                    }
-                                    else
-                                    {
-                                        mRegistrationView.postToast("Sign-up done.");
-
-                                        addUser(username, password);
-
-                                        mRegistrationView.goTo(Global.NewUserInfoActivity);
-                                        mRegistrationView.postToast(username + " is logged in");
-
-
-                                    }
                                 }
-                            });
-                        }
-                        @Override
-                        public void onError(Exception e)
+                                else
+                                {
+                                    mRegistrationView.postToast("Sign-up done.");
+
+//                                    addUser(username, password);
+
+                                    mRegistrationView.goTo(Global.NewUserInfoActivity);
+                                    mRegistrationView.postToast(username + " is logged in");
+
+
+                                }
+                            }
+                        });
+                    }
+                    @Override
+                    public void onError(Exception e)
+                    {
+                        Log.e(TAG, "Sign-up error", e);
+                        runOnUiThread(new Runnable()
                         {
-                            Log.e(TAG, "Sign-up error", e);
-                            mRegistrationView.postToast("Sign-up error");
+                            @Override
+                            public void run()
+                            {
+                                mRegistrationView.postToast("Sign-up error");
+                            }
+                        });
 //                            mRegistrationView.postToast(username + " " + e.getMessage());
-                        }
-                    });
-//                }
+                    }
+                });
             }
             else
             {
@@ -384,17 +404,18 @@ public class RegistrationPresenter extends AsyncTask<String, Integer, String> im
         if(mRegistrationView.getClass().equals(NewUserInfoActivity.class))
         {
             ArrayList<String> fields =  mRegistrationView.grabTextFields();
-            assert fields.size() == 2;
+            assert fields.size() == 3;
 
             String firstName = fields.get(0);
             String lastName = fields.get(1);
+            String email = fields.get(2);
 
             Bitmap profilePicture = mRegistrationView.grabImageField();
 
             if(profilePicture != null && firstName != null && lastName != null
-            && firstName.length() > 0 && lastName.length() > 0)
+            && firstName.length() > 0 && lastName.length() > 0 && email != null && email.length() > 0)
             {
-                this.updateUserInfo(username, firstName, lastName);
+                this.updateUserInfo(username, firstName, lastName, email, profilePicture);
                 mRegistrationView.goTo(Global.HomeActivity);
             }
             else

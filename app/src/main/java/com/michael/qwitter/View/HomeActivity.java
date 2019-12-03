@@ -13,11 +13,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.PopupWindow;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.SearchView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.viewpager.widget.ViewPager;
@@ -47,6 +49,7 @@ public class HomeActivity extends AppCompatActivity implements RecyclerFragment.
     private PopupWindow mPopupWindow;
     private View mPopupView;
     private Button mLoadButton;
+    private ProgressBar mLoadingIcon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -61,8 +64,10 @@ public class HomeActivity extends AppCompatActivity implements RecyclerFragment.
         mHomePresenter = (HomePresenter)
                 ACPresenterFactory.getInstance().createPresenter(Global.HomeActivity, this);
 
+        mHomePresenter.setHomeUser(mUserAlias);
+
         //this is what blows up the feed fragment
-        SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(this, getSupportFragmentManager(), mUserAlias, "FEED");
+        SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(this, getSupportFragmentManager(), mUserAlias, "FEED", this);
         ViewPager viewPager = findViewById(R.id.view_pager);
         viewPager.setAdapter(sectionsPagerAdapter);
         TabLayout tabs = findViewById(R.id.tabs);
@@ -130,6 +135,8 @@ public class HomeActivity extends AppCompatActivity implements RecyclerFragment.
 //        });
 
 
+        mLoadingIcon = findViewById(R.id.home_progress_bar);
+        mLoadingIcon.setVisibility(View.INVISIBLE);
     }
 
     @Override
@@ -139,6 +146,13 @@ public class HomeActivity extends AppCompatActivity implements RecyclerFragment.
         inflater.inflate(R.menu.main_menu, menu);
         System.out.println("inflating custom menu");
         return true;
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data)
+    {
+        super.onActivityResult(requestCode, resultCode, data);
+        mHomePresenter.savePicture(requestCode, resultCode, data);
     }
 
     private void dispatchTakePictureIntent()
@@ -228,6 +242,14 @@ public class HomeActivity extends AppCompatActivity implements RecyclerFragment.
         if(field.equalsIgnoreCase(SearchView.class.toString()))
         {
             mSearchView.setQuery((String) object, false);
+        }
+        else if (field.equalsIgnoreCase("done"))
+        {
+            mLoadingIcon.setVisibility(View.INVISIBLE);
+        }
+        else if (field.equalsIgnoreCase("starting"))
+        {
+            mLoadingIcon.setVisibility(View.VISIBLE);
         }
     }
 

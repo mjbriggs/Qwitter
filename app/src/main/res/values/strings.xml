@@ -10,5 +10,8 @@
     <string name="story_text">Story</string>
     <string name="followers_text">Followers</string>
     <string name="following_text">Following</string>
+    <string name="logout_text">Logout</string>
+    <string name="update_pic_text">Update Profile Picture</string>
+    <string name="search_text">Search</string>
 
 </resources>

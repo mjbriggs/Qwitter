@@ -3,13 +3,17 @@ package com.michael.qwitter.GatewayProxy;
 import android.util.Log;
 
 import com.michael.qwitter.GatewayProxy.ProxyInterfaces.IProxy;
+import com.michael.qwitter.Model.Hashtag;
+import com.michael.qwitter.Model.ModelInterfaces.IAttachment;
 import com.michael.qwitter.Model.Status;
 import com.michael.qwitter.Utils.Global;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import java.io.IOException;
+import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -41,12 +45,32 @@ public class AddStatus implements IProxy
             JSONObject obj = new JSONObject();
             String name[] = mNewStatus.getOwnerName().split(" ");
             obj.put("username", mLoggedUser);
+            obj.put("date", mNewStatus.getTimestamp());
             obj.put("firstName",name[0]);
             obj.put("lastName",  name[1]);
             obj.put("statusText", mNewStatus.getText());
-            obj.put("statusTags", mNewStatus.getHashTags().toArray());
-            obj.put("statusAttachment", "");
-            obj.put("attachmentFormat", "");
+            List<Hashtag> tagList = mNewStatus.getHashTags();
+            String[] tagStrs = new String [tagList.size()];
+            String tagStr = "[";
+            for (int i = 0; i < tagList.size(); i++)
+            {
+               tagStrs[i] = tagList.get(i).getTag();
+            }
+            JSONArray arr = new JSONArray(tagStrs);
+
+            obj.put("statusTags", arr);
+            IAttachment attachment = mNewStatus.getAttachment();
+
+            if (attachment != null)
+            {
+                obj.put("statusAttachment", attachment.getFilePath());
+                obj.put("attachmentFormat", attachment.format());
+            }
+            else
+            {
+                obj.put("statusAttachment", "none");
+                obj.put("attachmentFormat", "none");
+            }
 
             Log.i(Global.INFO, "Reqbody for add status" + obj.toString());
             RequestBody body = RequestBody.create(obj.toString().getBytes());

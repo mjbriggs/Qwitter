@@ -20,6 +20,7 @@ public class FeedPresenter implements StatusPresenter
 {
     private String mUserFullName;
     private List<Status> mFeedList;
+    private List<String> mProfileLinks;
     private IAccessor mAccessor;
     private int lastkey;
     private IView mFeedView;
@@ -29,6 +30,7 @@ public class FeedPresenter implements StatusPresenter
         PageTracker.getInstance().setFeedLastKey(0);
         mFeedList = new ArrayList<>();
         mAccessor = new Accessor();
+        mProfileLinks = new ArrayList<>();
         mUserFullName = "";
         lastkey = 0;
     }
@@ -77,13 +79,21 @@ public class FeedPresenter implements StatusPresenter
 
                 mUserFullName = user.getFirstName() + " " + user.getLastName();
 
-                String lk = PageTracker.getInstance().getFeedLastKey();
-                Log.i(Global.INFO, "lk before update is " + PageTracker.getInstance().getFeedLastKey());
+                String lk = "";
+                if (mFeedList.size() > 0)
+                {
+                    lk = mFeedList.get(mFeedList.size() - 1).getTimestamp();
+                }
                 List<Status> newStatuses = mAccessor.getFeed(username, lk).getStatusList();
-                lastkey += newStatuses.size();
-                PageTracker.getInstance().addFeedLastKey(newStatuses.size());
                 Log.i(Global.INFO, "lk after update is " + PageTracker.getInstance().getFeedLastKey());
 
+                for (Status status: newStatuses)
+                {
+
+                    Log.i(Global.DEBUG, status.getOwner());
+                    mProfileLinks.add(mAccessor.getUserInfo(status.getOwner()).getProfilePicture().getFilePath());
+
+                }
                 mFeedList.addAll(newStatuses);
 
                 runOnUiThread(new Runnable() {
@@ -98,6 +108,18 @@ public class FeedPresenter implements StatusPresenter
     }
 
     public Status getStatus(int position)
+    {
+        return null;
+    }
+
+    @Override
+    public String getUserProfilePic(int pos)
+    {
+        return mProfileLinks.get(pos);
+    }
+
+    @Override
+    public String getNameAt(int pos)
     {
         return null;
     }

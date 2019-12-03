@@ -102,6 +102,7 @@ public class SignUpActivity extends AppCompatActivity implements IRegistrationVi
         {
             Intent intent = new Intent(SignUpActivity.this, NewUserInfoActivity.class);
             intent.putExtra("USER_NAME", mUserAlias);
+            intent.putExtra("EMAIL", mEmail);
             startActivity(intent);
             finish();
         }

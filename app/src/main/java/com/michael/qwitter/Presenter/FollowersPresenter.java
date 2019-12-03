@@ -79,7 +79,12 @@ public class FollowersPresenter implements RelationPresenter
 //
 //                mStoryList.addAll(newStatuses);
 
-                Followers newFollowers = mAccessor.getFollowers(username, PageTracker.getInstance().getFollowersLastKey());
+                String lk = "";
+                if (mFollowers.getFollowers().size() > 0)
+                {
+                    lk = mFollowers.getFollowers().get(mFollowers.getFollowers().size() - 1).getUserAlias();
+                }
+                Followers newFollowers = mAccessor.getFollowers(username, lk);
                 PageTracker.getInstance().addFollowersLastKey(newFollowers.getFollowers().size());
                 for (User user : newFollowers.getFollowers())
                 {
@@ -96,4 +101,6 @@ public class FollowersPresenter implements RelationPresenter
         }).start();
 
     }
+
+
 }

@@ -2,6 +2,7 @@ package com.michael.qwitter.GatewayProxy;
 
 import android.util.Log;
 
+import com.michael.qwitter.Model.Image;
 import com.michael.qwitter.Model.User;
 import com.michael.qwitter.Utils.Global;
 
@@ -22,6 +23,7 @@ public class GetUserInfo implements Callable<User>
 
     public GetUserInfo(String username)
     {
+        Log.i(Global.DEBUG, "user name passed into constructor is " + username);
         this.username = username;
         user = new User("","");
         user.setFirstName(null);
@@ -34,7 +36,8 @@ public class GetUserInfo implements Callable<User>
     {
         try
         {
-            String url = Global.BASE_URL + "users/" + username + info;
+            Log.i(Global.DEBUG, "user name passed into url is " + this.username);
+            String url = Global.BASE_URL + "users/" + this.username + info;
             Log.i(Global.INFO, "url is " + url);
             Request request = new Request.Builder()
                     .url(url)
@@ -60,12 +63,15 @@ public class GetUserInfo implements Callable<User>
                     String lastName = jo.getString("lastName");
                     String email = jo.getString("email");
                     String profilePicture = jo.getString("profilePicture");
-
+                    Image img = new Image(username);
+                    img.setImagePath(profilePicture);
 //            String resPath = "/Users/michaelbriggs/AndroidStudioProjects/Qwitter/app/src/main/res/";
                     user.setUserAlias(username);
                     user.setFirstName(firstName);
                     user.setLastName(lastName);
                     user.setUserEmail(email);
+                    user.setProfilePicture(img);
+
 //            user.setProfilePicture(profilePicture)
                 }
                 catch (Exception e)

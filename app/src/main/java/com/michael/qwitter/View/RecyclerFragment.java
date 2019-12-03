@@ -35,6 +35,7 @@ public class RecyclerFragment extends Fragment implements IView
     private String mFeedType;
     private String mQuery;
     private Button mLoadButton;
+    private static IView mHomeView;
 
     public RecyclerFragment()
     {
@@ -49,8 +50,9 @@ public class RecyclerFragment extends Fragment implements IView
      * @return A new instance of fragment RecyclerFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static RecyclerFragment newInstance(String username, String type)
+    public static RecyclerFragment newInstance(String username, String type, IView homeView)
     {
+        mHomeView = homeView;
         System.out.println("username in new instance " + username);
         System.out.println("type in new instance " + type);
         RecyclerFragment fragment = new RecyclerFragment();
@@ -61,8 +63,9 @@ public class RecyclerFragment extends Fragment implements IView
         return fragment;
     }
 
-    public static RecyclerFragment newInstance(String username, String query, String type)
+    public static RecyclerFragment newInstance(String username, String query, String type, IView homeView)
     {
+        mHomeView = homeView;
         System.out.println("username in new instance " + username);
         System.out.println("type in new instance " + type);
         System.out.println("query in new instance " + query);
@@ -104,6 +107,7 @@ public class RecyclerFragment extends Fragment implements IView
             mQuery = "";
         }
 
+
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
         mRecyclerView.setHasFixedSize(true);
@@ -114,15 +118,30 @@ public class RecyclerFragment extends Fragment implements IView
         mLayoutManager = new LinearLayoutManager(getActivity());
         mRecyclerView.setLayoutManager(mLayoutManager);
 
+        mLoadButton = view.findViewById(R.id.load_button);
+        mLoadButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v)
+            {
+//                mLoadButton.setTextColor(Color.BLACK);
+//                mLoadButton.setBackgroundColor(Color.WHITE);
+                mAdapter.update();
+//                mLoadButton.setTextColor(Color.WHITE);
+//                mLoadButton.setBackgroundResource(R.color.colorBlue);
+            }
+        });
+
         // specify an adapter (see also next example)
         if(mFeedType.equalsIgnoreCase("SEARCH"))
         {
             System.out.println("Setting search adapter");
-            mAdapter = new RecyclerAdapter(mUserAlias, mQuery, mFeedType, getContext());
+            mAdapter = new RecyclerAdapter(mUserAlias, mQuery, mFeedType, getContext(), this);
+            mLoadButton.setVisibility(View.INVISIBLE);
         }
         else
         {
-            mAdapter = new RecyclerAdapter(mUserAlias, mFeedType, getContext());
+            mAdapter = new RecyclerAdapter(mUserAlias, mFeedType, getContext(), this);
         }
         mRecyclerView.setAdapter(mAdapter);
         System.out.println("Adapter is set");
@@ -148,19 +167,7 @@ public class RecyclerFragment extends Fragment implements IView
 //            }
 //        });
 
-        mLoadButton = view.findViewById(R.id.load_button);
-        mLoadButton.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View v)
-            {
-//                mLoadButton.setTextColor(Color.BLACK);
-//                mLoadButton.setBackgroundColor(Color.WHITE);
-                mAdapter.update();
-//                mLoadButton.setTextColor(Color.WHITE);
-//                mLoadButton.setBackgroundResource(R.color.colorBlue);
-            }
-        });
+
 
 
         return view;
@@ -194,7 +201,10 @@ public class RecyclerFragment extends Fragment implements IView
     {
         super.onDetach();
         mListener = null;
+        mHomeView.updateField("done", null);
     }
+
+
 
     /**
      * This interface must be implemented by activities that contain this
@@ -215,7 +225,14 @@ public class RecyclerFragment extends Fragment implements IView
     @Override
     public void updateField(String field, Object object)
     {
-
+        if (field.equalsIgnoreCase("done"))
+        {
+            mHomeView.updateField("done", null);
+        }
+        else if (field.equalsIgnoreCase("starting"))
+        {
+            mHomeView.updateField("starting", null);
+        }
     }
 
     @Override

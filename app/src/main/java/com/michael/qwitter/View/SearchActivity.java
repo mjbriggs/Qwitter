@@ -11,8 +11,9 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.michael.qwitter.R;
+import com.michael.qwitter.View.ViewInterfaces.IView;
 
-public class SearchActivity extends AppCompatActivity implements RecyclerFragment.OnFragmentInteractionListener
+public class SearchActivity extends AppCompatActivity implements RecyclerFragment.OnFragmentInteractionListener, IView
 {
 
     private String mType;
@@ -47,7 +48,7 @@ public class SearchActivity extends AppCompatActivity implements RecyclerFragmen
            }
        });
 
-       rf = RecyclerFragment.newInstance(mUserAlias, mQuery, mType);
+       rf = RecyclerFragment.newInstance(mUserAlias, mQuery, mType, this);
 
         FragmentManager fm = this.getSupportFragmentManager();
         FragmentTransaction ft = fm.beginTransaction();
@@ -61,5 +62,23 @@ public class SearchActivity extends AppCompatActivity implements RecyclerFragmen
     {
         Toast toast = Toast.makeText(SearchActivity.this, "Clicked " + position, Toast.LENGTH_SHORT);
         toast.show();
+    }
+
+    @Override
+    public void goTo(String view)
+    {
+
+    }
+
+    @Override
+    public void updateField(String field, Object object)
+    {
+
+    }
+
+    @Override
+    public void postToast(String message)
+    {
+
     }
 }

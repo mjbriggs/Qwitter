@@ -11,5 +11,6 @@ public interface IAttachment
     IAttachment clone();
     void setFilePath(String path);
     String getFilePath();
+    String format();
     //Bitmap getScaledBitmap(String path, Activity activity);
 }

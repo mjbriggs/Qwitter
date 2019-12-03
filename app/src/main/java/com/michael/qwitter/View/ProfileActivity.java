@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,6 +26,7 @@ import com.michael.qwitter.Utils.Global;
 import com.michael.qwitter.Utils.PageTracker;
 import com.michael.qwitter.View.ViewInterfaces.IProfileView;
 import com.michael.qwitter.View.ui.main.SectionsPagerAdapter;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
@@ -45,6 +47,7 @@ public class ProfileActivity extends HomeActivity implements IProfileView
     private String mOldStoryKey;
     private String mOldFollowersKey;
     private String mOldFollowingKey;
+    private ProgressBar mLoadingIcon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -69,6 +72,8 @@ public class ProfileActivity extends HomeActivity implements IProfileView
         mUserInfoLayout.setVisibility(View.VISIBLE);
         mUserInfoLayout.setMinimumHeight(300);
 
+        mLoadingIcon = findViewById(R.id.home_progress_bar);
+
 
         mFollowLayout = findViewById(R.id.follow_view);
         mFollowLayout.setBackgroundColor(Color.WHITE);
@@ -91,7 +96,8 @@ public class ProfileActivity extends HomeActivity implements IProfileView
 
         mProfilePresenter.setProfileInfo();
 
-//        mUserProfilePict = findViewById(R.id.follow_profile_picture);
+        mUserProfilePict = findViewById(R.id.follow_profile_picture);
+
 //        mUserProfilePict.setImageResource(R.drawable.ic_launcher_foreground);
 
         mBackButton = findViewById(R.id.back_button);
@@ -114,7 +120,7 @@ public class ProfileActivity extends HomeActivity implements IProfileView
         params.setMargins(0, 300, 0,0);
         appBarLayout.setLayoutParams(params);
 
-        SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(this, getSupportFragmentManager(), mUserAlias, "FEED");
+        SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(this, getSupportFragmentManager(), mUserAlias, "FEED", this);
         ViewPager viewPager = findViewById(R.id.view_pager);
         viewPager.setAdapter(sectionsPagerAdapter);
         viewPager.setPadding(0, 0, 0, 300);
@@ -174,6 +180,19 @@ public class ProfileActivity extends HomeActivity implements IProfileView
             mFollowButton.setVisibility(View.VISIBLE);
             String s = (String) object;
             mFollowButton.setText(s);
+        }
+        else if (field.equalsIgnoreCase("R.id.follow_profile_picture"))
+        {
+            String s = (String) object;
+            Picasso.get().load(s).into(mUserProfilePict);
+        }
+        else if (field.equalsIgnoreCase("done"))
+        {
+            mLoadingIcon.setVisibility(View.INVISIBLE);
+        }
+        else if (field.equalsIgnoreCase("starting"))
+        {
+            mLoadingIcon.setVisibility(View.VISIBLE);
         }
     }
 

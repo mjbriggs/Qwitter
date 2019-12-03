@@ -80,4 +80,16 @@ public class SoloStatusPresenter implements StatusPresenter
     {
 
     }
+
+    @Override
+    public String getUserProfilePic(int pos)
+    {
+        return null;
+    }
+
+    @Override
+    public String getNameAt(int pos)
+    {
+        return null;
+    }
 }

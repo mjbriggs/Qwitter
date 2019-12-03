@@ -75,6 +75,14 @@
             android:layout_height="wrap_content"
             android:id="@+id/status_image"
             android:visibility="invisible"/>
+<!--        <com.google.android.youtube.player.YouTubePlayerView-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:visibility="invisible"-->
+<!--            android:layout_centerHorizontal="true"-->
+<!--            android:id="@+id/youtube_player"-->
+<!--            android:layout_alignParentTop="true" />-->
+
         <VideoView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

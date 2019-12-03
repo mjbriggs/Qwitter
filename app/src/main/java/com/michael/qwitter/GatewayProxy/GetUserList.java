@@ -3,6 +3,7 @@ package com.michael.qwitter.GatewayProxy;
 import android.util.Log;
 
 import com.michael.qwitter.GatewayProxy.ProxyInterfaces.IGetUserList;
+import com.michael.qwitter.Model.Image;
 import com.michael.qwitter.Model.User;
 import com.michael.qwitter.Utils.Global;
 
@@ -31,7 +32,7 @@ public class GetUserList implements IGetUserList
     public GetUserList(String username, String listType, String lastKey, String pagesize)
     {
         mUsername = username;
-        mUrl = Global.BASE_URL + "users/" + mUsername + "/" + listType + "?lastkey=" + lastKey + "&pagesize=" + pagesize;
+        mUrl = Global.BASE_URL + "users/" + mUsername + "/" + listType + "?lastkey=" + lastKey + "&pagesize=" + 1;
         mUsers = null;
 
         if(listType.equalsIgnoreCase("all-followers"))
@@ -78,9 +79,12 @@ public class GetUserList implements IGetUserList
                         for (int i = 0; i < jLen; i++)
                         {
                             JSONObject myObj = jArr.getJSONObject(i);
-                            mTmpUser = new User(myObj.getString("username"),"");
+                            mTmpUser = new User(myObj.getString("userAlias"),"");
                             mTmpUser.setFirstName(myObj.getString("firstName"));
                             mTmpUser.setLastName(myObj.getString("lastName"));
+                            Image img = new Image(mTmpUser.getUserAlias());
+                            img.setFilePath(myObj.getString("profilePicture"));
+                            mTmpUser.setProfilePicture(img);
                             //TODO set profile picture
 
                             users.add(mTmpUser);

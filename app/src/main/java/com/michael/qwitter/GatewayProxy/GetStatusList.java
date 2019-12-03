@@ -7,6 +7,7 @@ import com.michael.qwitter.Model.Hashtag;
 import com.michael.qwitter.Model.Image;
 import com.michael.qwitter.Model.ModelInterfaces.IAttachment;
 import com.michael.qwitter.Model.Status;
+import com.michael.qwitter.Model.Video;
 import com.michael.qwitter.Utils.Global;
 
 import org.json.JSONArray;
@@ -34,6 +35,8 @@ public class GetStatusList implements IGetStatusList, Callable<List<Status>>
     private DateFormat mDateFormat;
     private String mUrl;
     private String mType;
+    private String mQuery;
+    private String mQueryType;
 
     public GetStatusList(String username, String feedType, String lastKey, String pagesize)
     {
@@ -48,6 +51,14 @@ public class GetStatusList implements IGetStatusList, Callable<List<Status>>
         this(username, feedType, lastKey, pagesize);
         mUrl = url;
     }
+    public GetStatusList(String feedType, String query, String url)
+    {
+        mType = feedType.toLowerCase();
+        mUrl = url;
+        mQuery = query;
+        mQueryType = "hashtag";
+    }
+
 
     @Override
     public List<Status> call() throws Exception
@@ -85,13 +96,29 @@ public class GetStatusList implements IGetStatusList, Callable<List<Status>>
                     {
                         JSONObject myObj = jArr.getJSONObject(i);
                         mTmpStatus = new Status(myObj.getString("statusText"));
-                        mTmpStatus.setTimePosted(mDateFormat.parse(myObj.getString("date")));
+                        mTmpStatus.setTimestamp(myObj.getString("date"));
+//                        mTmpStatus.setTimePosted(mDateFormat.parse(myObj.getString("date")));
                         mTmpStatus.setOwner(myObj.getString("username"));
-                        IAttachment attachment = new Image(mTmpStatus.getOwner());
-                        attachment.setFilePath(myObj.getString("attachment")
-                                .replace("[","")
-                                .replace("]",""));
-                        mTmpStatus.setAttachment(attachment);
+                        String format = myObj.getString("format");
+                        if (format != null && !format.equalsIgnoreCase("none"))
+                        {
+                            if(format.equalsIgnoreCase("image"))
+                            {
+                                IAttachment attachment = new Image(mTmpStatus.getOwner());
+                                attachment.setFilePath(myObj.getString("attachment")
+                                        .replace("[","")
+                                        .replace("]",""));
+                                mTmpStatus.setAttachment(attachment);
+                            }
+                            else if(format.equalsIgnoreCase("video"))
+                            {
+                                IAttachment attachment = new Video(mTmpStatus.getOwner());
+                                attachment.setFilePath(myObj.getString("attachment")
+                                        .replace("[","")
+                                        .replace("]",""));
+                                mTmpStatus.setAttachment(attachment);
+                            }
+                        }
                         JSONArray tags = myObj.getJSONArray("tags");
                         mHashTags.clear();
                         for(int j = 0; j < tags.length(); j++)
@@ -154,6 +181,8 @@ public class GetStatusList implements IGetStatusList, Callable<List<Status>>
                         JSONObject jo = (JSONObject) obj;
                         JSONArray jArr = jo.getJSONArray(mType);
 
+                        Log.i(Global.INFO, jo.toString());
+
                         int jLen = jArr.length();
                         Log.i(Global.INFO, mType + " list is of length " + jLen);
 
@@ -162,20 +191,37 @@ public class GetStatusList implements IGetStatusList, Callable<List<Status>>
                         {
                             JSONObject myObj = jArr.getJSONObject(i);
                             mTmpStatus = new Status(myObj.getString("statusText"));
-                            mTmpStatus.setTimePosted(mDateFormat.parse(myObj.getString("date")));
+                            mTmpStatus.setTimestamp(myObj.getString("date"));
                             mTmpStatus.setOwner(myObj.getString("username"));
-                            IAttachment attachment = new Image(mTmpStatus.getOwner());
-                            attachment.setFilePath(myObj.getString("attachment")
-                                    .replace("[","")
-                                    .replace("]",""));
-                            mTmpStatus.setAttachment(attachment);
-                            JSONArray tags = myObj.getJSONArray("tags");
-                            mHashTags.clear();
-                            for(int j = 0; j < tags.length(); j++)
+                            String format = myObj.getString("format");
+                            if (format != null && !format.equalsIgnoreCase("none"))
                             {
-                                mHashTags.add(new Hashtag(tags.getString(j)));
+                                if(format.equalsIgnoreCase("image"))
+                                {
+                                    IAttachment attachment = new Image(mTmpStatus.getOwner());
+                                    attachment.setFilePath(myObj.getString("attachment")
+                                            .replace("[","")
+                                            .replace("]",""));
+                                    mTmpStatus.setAttachment(attachment);
+                                }
+                                else if(format.equalsIgnoreCase("video"))
+                                {
+                                    IAttachment attachment = new Video(mTmpStatus.getOwner());
+                                    attachment.setFilePath(myObj.getString("attachment")
+                                            .replace("[","")
+                                            .replace("]",""));
+                                    mTmpStatus.setAttachment(attachment);
+                                }
                             }
-                            mTmpStatus.setHashTags(mHashTags);
+
+//                            String arr [] = myObj.getString("tags").split(",");
+//                            JSONArray tags = myObj.getJSONArray("tags");
+//                            mHashTags.clear();
+//                            for(int j = 0; j < tags.length(); j++)
+//                            {
+//                                mHashTags.add(new Hashtag(tags.getString(j)));
+//                            }
+//                            mTmpStatus.setHashTags(mHashTags);
                             statuses.add(mTmpStatus);
                         }
 

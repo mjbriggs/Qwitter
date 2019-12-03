@@ -3,6 +3,8 @@ package com.michael.qwitter.View;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextPaint;
@@ -15,12 +17,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.michael.qwitter.Model.ModelInterfaces.IAttachment;
 import com.michael.qwitter.Model.Status;
 import com.michael.qwitter.Presenter.FeedPresenter;
 import com.michael.qwitter.Presenter.FollowersPresenter;
@@ -57,6 +61,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
     private ViewGroup mParent;
     private String mQuery;
     private RecyclerHolder mLocalHolder;
+    private IView mFragmentView;
 
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
@@ -80,7 +85,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public RecyclerAdapter(String username, String type, Context context)
+    public RecyclerAdapter(String username, String type, Context context, IView fragment)
     {
         mFeedPresenter = null;
         mFollowersPresenter = null;
@@ -91,6 +96,8 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
         mContext = context;
         mQuery = "";
 
+        mFragmentView = fragment;
+
         mFeedPresenter = new FeedPresenter(this);
         mStoryPresenter = new StoryPresenter(this);
         mFollowersPresenter = new FollowersPresenter(mUserAlias, this);
@@ -99,7 +106,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
 
     }
 
-    public RecyclerAdapter(String username, String query, String type, Context context)
+    public RecyclerAdapter(String username, String query, String type, Context context, IView fragment)
     {
         mFeedPresenter = null;
         mFollowersPresenter = null;
@@ -109,6 +116,8 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
         mFeedType = type;
         mContext = context;
         mQuery = query;
+
+        mFragmentView = fragment;
 
         mFeedPresenter = new FeedPresenter(this);
         mStoryPresenter = new StoryPresenter(this);
@@ -120,6 +129,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
 
     public void update()
     {
+        mFragmentView.updateField("starting", null);
         if (mFeedType.equalsIgnoreCase(Global.FEED))
             mFeedPresenter.update(mUserAlias);
         else if (mFeedType.equalsIgnoreCase(Global.STORY))
@@ -158,7 +168,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
 
     // Replace the contents of a view (invoked by the layout manager)
     @Override
-    public void onBindViewHolder(RecyclerHolder holder, final int position) {
+    public void onBindViewHolder(final RecyclerHolder holder, final int position) {
         //TODO place a lot of the logic of getting info within the presenter, right now things are messy
 
         mLocalHolder = holder;
@@ -176,6 +186,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
             holder.statusImage.setVisibility(View.INVISIBLE);
             holder.statusContainer = holder.layoutView.findViewById(R.id.status_container);
             holder.profilePicture = holder.layoutView.findViewById(R.id.status_profile_picture);
+            holder.statusVideo = holder.layoutView.findViewById(R.id.status_video);
 
             ViewGroup.LayoutParams params = holder.layoutView.getLayoutParams();
             // Changes the height and width to the specified *pixels*
@@ -184,6 +195,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
 
             holder.statusContainer.setOnClickListener(new View.OnClickListener()
             {
+                //TODO handle if status has video
                 @Override
                 public void onClick(View v)
                 {
@@ -194,13 +206,22 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
                         intent.putExtra("TEXT", mFeedPresenter.getStatuses(mUserAlias).get(position).getText());
                         intent.putExtra("USER_NAME", mFeedPresenter.getUserAlias(position));
                         intent.putExtra("FULL_NAME", mFeedPresenter.getUserFullName());
-                        intent.putExtra("DATE", mFeedPresenter.getStatuses(mUserAlias).get(position).getTimePosted());
-//                        if(mFeedPresenter.getStatuses(mUserAlias).get(position).getAttachment() != null)
-//                        {
-//                            Drawable d = mContext.getResources().getDrawable(R.drawable.new_icon);
-//                            Bitmap bitmap = ((BitmapDrawable) d).getBitmap();
-//                            intent.putExtra("IMG", bitmap);
-//                        }
+                        intent.putExtra("DATE", mFeedPresenter.getStatuses(mUserAlias).get(position).getTimestamp().split("-")[0]);
+                        intent.putExtra("profilePicture", mFeedPresenter.getUserProfilePic(position));
+                        IAttachment att = mFeedPresenter.getStatuses(mUserAlias).get(position).getAttachment();
+                        if (att != null)
+                        {
+                            intent.putExtra("attachment", att.getFilePath());
+                            intent.putExtra("type", att.format());
+                            if (att.format().equalsIgnoreCase("video"))
+                                return;
+                        }
+                        else
+                        {
+                            intent.putExtra("attachment", "none");
+                            intent.putExtra("type", "none");
+                        }
+
                         mContext.startActivity(intent);
                     }
                     else if(mFeedType.equalsIgnoreCase("STORY"))
@@ -210,18 +231,25 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
                         intent.putExtra("TEXT", mStoryPresenter.getStatuses(mUserAlias).get(position).getText());
                         intent.putExtra("USER_NAME", mUserAlias);
                         intent.putExtra("FULL_NAME", mStoryPresenter.getUserFullName());
-                        intent.putExtra("DATE", mStoryPresenter.getStatuses(mUserAlias).get(position).getTimePosted());
+                        intent.putExtra("DATE", mStoryPresenter.getStatuses(mUserAlias).get(position).getTimestamp().split("-")[0]);
+                        intent.putExtra("profilePicture", mStoryPresenter.getUserProfilePic(position));
+
+                        IAttachment att = mStoryPresenter.getStatuses(mUserAlias).get(position).getAttachment();
+                        if (att != null)
+                        {
+                            intent.putExtra("attachment", att.getFilePath());
+                            intent.putExtra("type", att.format());
+                            if (att.format().equalsIgnoreCase("video"))
+                                return;
+                        }
+                        else
+                        {
+                            intent.putExtra("attachment", "none");
+                            intent.putExtra("type", "none");
+                        }
+
                         mContext.startActivity(intent);
                     }
-//                    else if(mFeedType.equalsIgnoreCase("SEARCH"))
-//                    {
-//                        mSearchPresenter = new SearchPresenter();
-//                        Intent intent = new Intent(mContext, SoloStatusActivity.class);
-//                        intent.putExtra("TEXT", mSearchPresenter.getStatuses(mUserAlias).get(position).getText());
-//                        intent.putExtra("USER_NAME", mSearchPresenter.getUserAlias(position));
-//                        intent.putExtra("FULL_NAME", mSearchPresenter.getUserFullName());
-//                        intent.putExtra("DATE", mSearchPresenter.getStatuses(mUserAlias).get(position).getTimePosted());
-//                    }
                 }
             });
 
@@ -232,41 +260,63 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
                 holder.statusText.setText(mFeedPresenter.getStatuses(mUserAlias).get(position).getText());
                 holder.alias.setText("@" + mFeedPresenter.getUserAlias(position));
                 holder.name.setText(mFeedPresenter.getUserFullName());
-                mStatusDate = mFeedPresenter.getStatuses(mUserAlias).get(position).getTimePosted();
-                mStatusMonth = Month.values()[mStatusDate.getMonth()];
-                String date = mStatusMonth + " " + mStatusDate.getDay();
+//                mStatusDate = mFeedPresenter.getStatuses(mUserAlias).get(position).getTimePosted();
+//                mStatusMonth = Month.values()[mStatusDate.getMonth()];
+                String date =stat.getTimestamp().split("-")[0];
                 holder.statusTimeStamp.setText(date);
+                Picasso.get().load(mFeedPresenter.getUserProfilePic(position)).into(holder.profilePicture);
 
                 if(stat.getAttachment() != null)
                 {
                     Log.i(Global.INFO, "status" + stat.getText() + "\n file path is " + stat.getAttachment().getFilePath());
                     if(stat.getAttachment().getFilePath() != null &&
-                    stat.getAttachment().getFilePath().length() > 0)
+                    stat.getAttachment().getFilePath().length() > 0 &&
+                            stat.getAttachment().format().equalsIgnoreCase("image"))
                     {
+                        ViewGroup.LayoutParams param = holder.layoutView.getLayoutParams();
+                        // Changes the height and width to the specified *pixels*
+                        param.height = 700;
+                        holder.layoutView.setLayoutParams(param);
+
                         Picasso.get().load(stat.getAttachment().getFilePath()).into(holder.statusImage);
                         holder.statusImage.setVisibility(View.VISIBLE);
+                        holder.statusImage.setMinimumHeight(300);
+                        holder.statusImage.setMinimumWidth(300);
+                    }
+                    else if ( stat.getAttachment().format().equalsIgnoreCase("video"))
+                    {
+                        ViewGroup.LayoutParams param = holder.layoutView.getLayoutParams();
+                        // Changes the height and width to the specified *pixels*
+                        param.height = 700;
+                        holder.layoutView.setLayoutParams(param);
+                        final String link = stat.getAttachment().getFilePath();
+
+                        try {
+                            // Start the MediaController
+                            MediaController mediacontroller = new MediaController(mContext);
+                            mediacontroller.setAnchorView(holder.statusVideo);
+                            // Get the URL from String videoUrl
+                            Uri video = Uri.parse(link);
+                            holder.statusVideo.setMediaController(mediacontroller);
+                            holder.statusVideo.setVideoURI(video);
+
+                        } catch (Exception e) {
+                            Log.e("Error", e.getMessage(), e);
+                        }
+
+                        holder.statusVideo.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                            public void onPrepared(MediaPlayer mp) {
+                                holder.statusVideo.start();
+                            }
+                        });
+
+                        holder.statusVideo.setVisibility(View.VISIBLE);
+                        holder.statusVideo.setMinimumHeight(300);
+                        holder.statusVideo.setMinimumWidth(300);
+
+                        holder.statusContainer.setClickable(false);
                     }
                 }
-//                if(mFeedPresenter.getStatuses(mUserAlias).get(position).getAttachment() != null)
-//                {
-//                    System.out.println("status " + mFeedPresenter.getStatuses(mUserAlias).get(position).getText() + " at position " + position + " has image, setting image resource");
-//                    holder.statusImage.setVisibility(View.VISIBLE);
-//                    Drawable d = mContext.getResources().getDrawable(R.drawable.new_icon);
-//                    holder.statusImage.setBackgroundColor(Color.BLACK);
-//                    holder.statusImage.setImageDrawable(d);
-//                    //holder.statusImage.setImageResource(R.drawable.new_icon);
-//                    holder.statusImage.setMinimumHeight(300);
-//                    holder.statusImage.setMinimumWidth(300);
-//                    params.height = 700;
-//                    holder.layoutView.setLayoutParams(params);
-//                }
-//                else
-//                {
-//                    System.out.println("status " + mFeedPresenter.getStatuses(mUserAlias).get(position).getText() + " has no image, image is null");
-//
-//                }
-                //TODO set profile picture
-                //TODO set attachment
 
             }
             else if(mFeedType.equalsIgnoreCase("STORY"))
@@ -276,23 +326,61 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
                 holder.statusText.setText(mStoryPresenter.getStatuses(mUserAlias).get(position).getText());
                 holder.alias.setText("@" + mUserAlias);
                 holder.name.setText(mStoryPresenter.getUserFullName());
-                mStatusDate = mStoryPresenter.getStatuses(mUserAlias).get(position).getTimePosted();
-                mStatusMonth = Month.values()[mStatusDate.getMonth()];
-                String date = mStatusMonth + " " + mStatusDate.getDay();
+//                mStatusDate = mStoryPresenter.getStatuses(mUserAlias).get(position).getTimePosted();
+//                mStatusMonth = Month.values()[mStatusDate.getMonth()];
+                String date = stat.getTimestamp().split("-")[0];
                 holder.statusTimeStamp.setText(date);
+                Picasso.get().load(mStoryPresenter.getUserProfilePic(position)).into(holder.profilePicture);
 
                 if(stat.getAttachment() != null)
                 {
                     Log.i(Global.INFO, "status" + stat.getText() + "\n file path is " + stat.getAttachment().getFilePath());
                     if(stat.getAttachment().getFilePath() != null &&
-                            stat.getAttachment().getFilePath().length() > 0)
+                            stat.getAttachment().getFilePath().length() > 0  &&
+                            stat.getAttachment().format().equalsIgnoreCase("image"))
                     {
+                        ViewGroup.LayoutParams param = holder.layoutView.getLayoutParams();
+                        // Changes the height and width to the specified *pixels*
+                        param.height = 700;
+                        holder.layoutView.setLayoutParams(param);
+
                         Picasso.get().load(stat.getAttachment().getFilePath()).into(holder.statusImage);
                         holder.statusImage.setVisibility(View.VISIBLE);
+                        holder.statusImage.setMinimumHeight(300);
+                        holder.statusImage.setMinimumWidth(300);
+                    }
+                    else if ( stat.getAttachment().format().equalsIgnoreCase("video"))
+                    {
+                        ViewGroup.LayoutParams param = holder.layoutView.getLayoutParams();
+                        // Changes the height and width to the specified *pixels*
+                        param.height = 700;
+                        holder.layoutView.setLayoutParams(param);
+                        final String link = stat.getAttachment().getFilePath();
+
+                        try {
+                            // Start the MediaController
+                            MediaController mediacontroller = new MediaController(mContext);
+                            mediacontroller.setAnchorView(holder.statusVideo);
+                            // Get the URL from String videoUrl
+                            Uri video = Uri.parse(link);
+                            holder.statusVideo.setMediaController(mediacontroller);
+                            holder.statusVideo.setVideoURI(video);
+
+                        } catch (Exception e) {
+                            Log.e("Error", e.getMessage(), e);
+                        }
+
+                        holder.statusVideo.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                            public void onPrepared(MediaPlayer mp) {
+                                holder.statusVideo.start();
+                            }
+                        });
+
+                        holder.statusVideo.setVisibility(View.VISIBLE);
+                        holder.statusVideo.setMinimumHeight(300);
+                        holder.statusVideo.setMinimumWidth(300);
                     }
                 }
-                //TODO set profile picture
-                //TODO set attachment
             }
 
             else if(mFeedType.equalsIgnoreCase("SEARCH"))
@@ -301,24 +389,65 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
                 Status stat = mSearchPresenter.getStatuses(mUserAlias).get(position);
                 holder.statusText.setText(mSearchPresenter.getStatuses("").get(position).getText());
                 holder.alias.setText("@" + mSearchPresenter.getStatus(position).getOwner());
-                holder.name.setText(mSearchPresenter.getStatus(position).getOwnerName());
-                mStatusDate = mSearchPresenter.getStatus(position).getTimePosted();
-                mStatusMonth = Month.values()[mStatusDate.getMonth()];
-                String date = mStatusMonth + " " + mStatusDate.getDay();
+                holder.name.setText(mSearchPresenter.getNameAt(position));
+//                mStatusDate = mSearchPresenter.getStatus(position).getTimePosted();
+//                mStatusMonth = Month.values()[mStatusDate.getMonth()];
+                String date = mSearchPresenter.getStatus(position).getTimestamp().split("-")[0];
                 holder.statusTimeStamp.setText(date);
+                Picasso.get().load(mSearchPresenter.getUserProfilePic(position)).into(holder.profilePicture);
+
 
                 if(stat.getAttachment() != null)
                 {
                     Log.i(Global.INFO, "status" + stat.getText() + "\n file path is " + stat.getAttachment().getFilePath());
                     if(stat.getAttachment().getFilePath() != null &&
-                            stat.getAttachment().getFilePath().length() > 0)
+                            stat.getAttachment().getFilePath().length() > 0 &&
+                            stat.getAttachment().format().equalsIgnoreCase("image"))
                     {
+                        ViewGroup.LayoutParams param = holder.layoutView.getLayoutParams();
+                        // Changes the height and width to the specified *pixels*
+                        param.height = 700;
+                        holder.layoutView.setLayoutParams(param);
+
                         Picasso.get().load(stat.getAttachment().getFilePath()).into(holder.statusImage);
                         holder.statusImage.setVisibility(View.VISIBLE);
+                        holder.statusImage.setMinimumHeight(300);
+                        holder.statusImage.setMinimumWidth(300);
+                    }
+                    else if ( stat.getAttachment().format().equalsIgnoreCase("video"))
+                    {
+                        ViewGroup.LayoutParams param = holder.layoutView.getLayoutParams();
+                        // Changes the height and width to the specified *pixels*
+                        param.height = 700;
+                        holder.layoutView.setLayoutParams(param);
+                        final String link = stat.getAttachment().getFilePath();
+
+                        try {
+                            // Start the MediaController
+                            MediaController mediacontroller = new MediaController(mContext);
+                            mediacontroller.setAnchorView(holder.statusVideo);
+                            // Get the URL from String videoUrl
+                            Uri video = Uri.parse(link);
+                            holder.statusVideo.setMediaController(mediacontroller);
+                            holder.statusVideo.setVideoURI(video);
+
+                        } catch (Exception e) {
+                            Log.e("Error", e.getMessage(), e);
+                        }
+
+                        holder.statusVideo.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                            public void onPrepared(MediaPlayer mp) {
+                                holder.statusVideo.start();
+                            }
+                        });
+
+                        holder.statusVideo.setVisibility(View.VISIBLE);
+                        holder.statusVideo.setMinimumHeight(300);
+                        holder.statusVideo.setMinimumWidth(300);
+
+                        holder.statusContainer.setClickable(false);
                     }
                 }
-                //TODO set profile picture
-                //TODO set attachment
             }
 
             Linkify.addLinks(holder.statusText, Linkify.WEB_URLS);
@@ -425,16 +554,26 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
                 holder.name.setText(mFollowersPresenter.getFollowers().getFollowers().get(position).getFirstName() + " "
                         + mFollowersPresenter.getFollowers().getFollowers().get(position).getLastName());
                 holder.alias.setText("@" + mFollowersPresenter.getFollowers().getFollowers().get(position).getUserAlias());
-                //TODO set profile picture
+
+                String url = mFollowersPresenter.getFollowers().getFollowers().get(position).getProfilePicture().getFilePath();
+                if (url != null)
+                    Picasso.get().load(url).into(holder.profilePicture);
+
+//                mFollowersPresenter.getFollowers().getFollowers().get(position).getProfilePicture();
+
             }
             else if (mFeedType.equalsIgnoreCase("FOLLOWING"))
             {
 //                mFollowingPresenter = new FollowingPresenter(mUserAlias);
 
+
                 holder.name.setText(mFollowingPresenter.getFollowing().getFollowing().get(position).getFirstName() + " "
                         + mFollowingPresenter.getFollowing().getFollowing().get(position).getLastName());
                 holder.alias.setText("@" + mFollowingPresenter.getFollowing().getFollowing().get(position).getUserAlias());
-                //TODO set profile picture
+
+                String url = mFollowingPresenter.getFollowing().getFollowing().get(position).getProfilePicture().getFilePath();
+                if (url != null)
+                    Picasso.get().load(url).into(holder.profilePicture);
             }
         }
 
@@ -517,6 +656,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
                 field.equalsIgnoreCase("SEARCH"))
         {
             this.notifyDataSetChanged();
+            mFragmentView.updateField("done", null);
         }
     }
 

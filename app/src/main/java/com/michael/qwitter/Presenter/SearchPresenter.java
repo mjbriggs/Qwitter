@@ -1,10 +1,14 @@
 package com.michael.qwitter.Presenter;
 
+import android.util.Log;
+
 import com.michael.qwitter.DummyData.DummyUserDatabase;
 import com.michael.qwitter.GatewayFacade.Accessor;
 import com.michael.qwitter.GatewayFacade.IAccessor;
 import com.michael.qwitter.Model.Status;
+import com.michael.qwitter.Model.User;
 import com.michael.qwitter.Presenter.PresenterInterfaces.StatusPresenter;
+import com.michael.qwitter.Utils.Global;
 import com.michael.qwitter.View.ViewInterfaces.IView;
 
 import java.util.ArrayList;
@@ -20,6 +24,8 @@ public class SearchPresenter implements StatusPresenter
     private String mQuery;
     private IAccessor mAccessor;
     private IView mSearchView;
+    private List<User> mProfiles;
+
 
     public SearchPresenter(String mQuery, IView searchView)
     {
@@ -32,6 +38,7 @@ public class SearchPresenter implements StatusPresenter
     public SearchPresenter()
     {
         this.mQuery = "";
+        mProfiles = new ArrayList<>();
         mStatuses = new ArrayList<>();
         mAccessor = new Accessor();
     }
@@ -45,6 +52,13 @@ public class SearchPresenter implements StatusPresenter
             {
                 mStatuses = mAccessor.search(mQuery);
                 System.out.println(mQuery + " search returned " + mStatuses.size() + " results");
+                for (Status status: mStatuses)
+                {
+
+                    Log.i(Global.DEBUG, status.getOwner());
+                    mProfiles.add(mAccessor.getUserInfo(status.getOwner()));
+
+                }
                 runOnUiThread(new Runnable()
                 {
                     @Override
@@ -85,5 +99,18 @@ public class SearchPresenter implements StatusPresenter
     public void update(String username)
     {
         this.search();
+    }
+
+    @Override
+    public String getUserProfilePic(int pos)
+    {
+        return mProfiles.get(pos).getProfilePicture().getFilePath();
+    }
+
+    @Override
+    public String getNameAt(int pos)
+    {
+        User user = mProfiles.get(pos);
+        return user.getFirstName() + " " + user.getLastName();
     }
 }

@@ -12,4 +12,6 @@ public interface StatusPresenter
     String getUserAlias(int position);
     Status getStatus(int position);
     void update(String username);
+    String getUserProfilePic(int pos);
+    String getNameAt(int pos);
 }

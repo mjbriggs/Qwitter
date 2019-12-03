@@ -35,6 +35,7 @@ public class NewUserInfoActivity extends AppCompatActivity implements IRegistrat
     private Button mCreateButton;
     private String mUserAlias;
     private Bitmap mBitmap;
+    private String mEmail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -43,6 +44,7 @@ public class NewUserInfoActivity extends AppCompatActivity implements IRegistrat
         setContentView(R.layout.activity_new_user_info);
 
         mUserAlias = getIntent().getExtras().getString("USER_NAME");
+        mEmail = getIntent().getExtras().getString("EMAIL");
 
 
         mNewUserInfoPresenter = new RegistrationPresenter(this);
@@ -122,10 +124,12 @@ public class NewUserInfoActivity extends AppCompatActivity implements IRegistrat
         mFirstName = mFirstNameField.getText().toString();
         mLastName = mLastNameField.getText().toString();
 
+
         ArrayList<String> fields = new ArrayList<>();
 
         fields.add(mFirstName);
         fields.add(mLastName);
+        fields.add(mEmail);
 
         return fields;
     }

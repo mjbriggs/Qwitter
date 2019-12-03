@@ -6,6 +6,7 @@ import androidx.annotation.Nullable;
 import com.michael.qwitter.Model.ModelInterfaces.IAttachment;
 import com.michael.qwitter.Utils.StatusParser;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -21,11 +22,15 @@ public class Status
     //TODO add URLs collection
     private IAttachment mAttachment;
     private Date mTimePosted;
+    private String mTimestamp;
 
     public Status(String text)
     {
         mText = text;
         mTimePosted = new Date();
+        LocalDateTime time = LocalDateTime.now();
+        mTimestamp = time.getYear() + "." + time.getMonthValue() + "." + time.getDayOfMonth() + "-"
+                + time.getHour() + ":" + time.getMinute() + ":" + time.getSecond();
         mHashTags = new ArrayList<>();
         mOwner = "";
         mOwnerName = "";
@@ -39,6 +44,9 @@ public class Status
         System.out.println("new status owner is " + owner + ", name is " + ownerName);
         mText = text;
         mTimePosted = new Date();
+        LocalDateTime time = LocalDateTime.now();
+        mTimestamp = time.getYear() + "." + time.getMonthValue() + "." + time.getDayOfMonth() + "-"
+                + time.getHour() + ":" + time.getMinute() + ":" + time.getSecond();
 
         this.findHashTags();
         System.out.println("tags for status " + mHashTags.toString());
@@ -162,5 +170,15 @@ public class Status
         status.setOwner(this.mOwner);
 
         return status;
+    }
+
+    public String getTimestamp()
+    {
+        return mTimestamp;
+    }
+
+    public void setTimestamp(String mTimestamp)
+    {
+        this.mTimestamp = mTimestamp;
     }
 }

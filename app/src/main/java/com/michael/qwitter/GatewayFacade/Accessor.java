@@ -68,7 +68,7 @@ public class Accessor implements IAccessor
     @Override
     public User getUserInfo(String username)
     {
-        if(mGetUserInfo == null)
+//        if(mGetUserInfo == null)
             mGetUserInfo = new GetUserInfo(username);
         User user = new User("","");
 
@@ -98,7 +98,6 @@ public class Accessor implements IAccessor
         try
         {
             Future<Feed> future = executorService.submit(mGetFeed);
-            Log.i(Global.INFO ," getting user info for " + username);
             feed = future.get();
         }
         catch (Exception e)
@@ -109,7 +108,6 @@ public class Accessor implements IAccessor
         {
             executorService.shutdown();
         }
-        Log.i(Global.INFO ," got user info for " + username);
 
 //        mGetFeed.execute();
 //

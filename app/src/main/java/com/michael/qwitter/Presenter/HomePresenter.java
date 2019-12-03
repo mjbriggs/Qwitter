@@ -1,5 +1,9 @@
 package com.michael.qwitter.Presenter;
 
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Matrix;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.SearchView;
@@ -8,10 +12,10 @@ import com.amazonaws.mobile.client.AWSMobileClient;
 import com.michael.qwitter.DummyData.UserDatabase;
 import com.michael.qwitter.GatewayFacade.Accessor;
 import com.michael.qwitter.GatewayFacade.IAccessor;
+import com.michael.qwitter.Model.Image;
 import com.michael.qwitter.Model.ModelInterfaces.IAuthentication;
 import com.michael.qwitter.Model.User;
 import com.michael.qwitter.Presenter.PresenterInterfaces.IHomePresenter;
-import com.michael.qwitter.R;
 import com.michael.qwitter.Utils.Global;
 import com.michael.qwitter.View.ViewInterfaces.IHomeView;
 
@@ -59,6 +63,7 @@ public class HomePresenter implements IHomePresenter
         return mHomeUser != null;
     }
 
+
     public User getHomeUser()
     {
         return mHomeUser;
@@ -93,23 +98,52 @@ public class HomePresenter implements IHomePresenter
     @Override
     public boolean handleMenu(MenuItem item)
     {
-        switch (item.getItemId())
+//        Log.d(Global.DEBUG, "item id is " + item.getItemId());
+//        Log.d(Global.DEBUG, "profile id is " + R.id.update_profile_picture);
+//        Log.d(Global.DEBUG, "logout id is " + R.id.logout_button);
+//        Log.d(Global.DEBUG, "search id is " + R.id.menu_search_button);
+
+        CharSequence title = item.getTitle();
+        String titleStr = title.toString();
+        Log.i(Global.INFO, "title of menu item is " + titleStr);
+        if (titleStr.equalsIgnoreCase("Update profile picture"))
         {
-            case R.id.update_profile_picture:
-                mHomeView.takePhoto();
-                return true;
-            case R.id.logout_button:
-                this.logoutUser();
-                mHomeView.goTo(Global.LoginActivity);
-                //TODO logout user with amplify
-                return true;
-            case R.id.menu_search_button:
-                Log.d(Global.DEBUG, "search button id clicked, going to " + Global.SearchView);
-                mHomeView.goTo(Global.SearchView);
-                return true;
-            default:
-                return false;
+            Log.i(Global.INFO, "Trying to dispatch photo intent");
+            mHomeView.takePhoto();
+            return true;
         }
+        else if (titleStr.equalsIgnoreCase("Logout"))
+        {
+            this.logoutUser();
+            mHomeView.goTo(Global.LoginActivity);
+            return true;
+        }
+        else if (titleStr.equalsIgnoreCase("Search"))
+        {
+            Log.d(Global.DEBUG, "search button id clicked, going to " + Global.SearchView);
+            mHomeView.goTo(Global.SearchView);
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+//        switch (item.getItemId())
+//        {
+//            case R.id.update_profile_picture:
+//                mHomeView.takePhoto();
+//                return true;
+//            case R.id.logout_button:
+//                this.logoutUser();
+//                mHomeView.goTo(Global.LoginActivity);
+//                return true;
+//            case R.id.menu_search_button:
+//                Log.d(Global.DEBUG, "search button id clicked, going to " + Global.SearchView);
+//                mHomeView.goTo(Global.SearchView);
+//                return true;
+//            default:
+//
+//        }
     }
 
     @Override
@@ -204,7 +238,56 @@ public class HomePresenter implements IHomePresenter
                 }
             }
         }).start();
+    }
+
+    @Override
+    public void savePicture(int requestCode, int responseCode, Intent data)
+    {
+        if (requestCode == Global.REQUEST_PHOTO && responseCode == Global.RESULT_OK)
+        {
+            Bundle extras = data.getExtras();
+
+            Bitmap sourceBitmap = (Bitmap) extras.get("data");
+
+            Matrix matrix = new Matrix();
+
+            //matrix.postRotate(270);  //rotation for normal phones
+            matrix.postRotate(90);  //rotation for emulator
 
 
+            Bitmap bitmap = Bitmap.createBitmap(sourceBitmap, 0, 0, sourceBitmap.getWidth(), sourceBitmap.getHeight(), matrix, true);
+
+            sourceBitmap.recycle();
+
+            if (mHomeUser == null)
+            {
+                mHomeView.postToast("Unable to save picture, wait and try again");
+                return;
+            }
+
+            Image img = new Image(mHomeUser.getUserAlias());
+            img.setBitMap(bitmap);
+
+            mHomeUser.setProfilePicture(img);
+
+            Log.i(Global.INFO, "updating " + mHomeUser.toString());
+
+            new Thread(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    mAccessor.updateUserInfo(mHomeUser);
+                }
+            }).start();
+
+//            .updateField(Global.PROFILE_PIC, bitmap);
+        }
+    }
+
+    @Override
+    public void setHomeUser(String username)
+    {
+        mHomeUser = mAccessor.getUserInfo(username);
     }
 }

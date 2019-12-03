@@ -1,10 +1,7 @@
 package com.michael.qwitter.View;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -26,19 +23,19 @@ import com.michael.qwitter.Presenter.PresenterInterfaces.IRegistrationPresenter;
 import com.michael.qwitter.Presenter.RegistrationPresenter;
 import com.michael.qwitter.Presenter.SoloStatusPresenter;
 import com.michael.qwitter.R;
-import com.michael.qwitter.Utils.Month;
 import com.michael.qwitter.Utils.StatusParser;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
-import java.util.Date;
 
 public class SoloStatusActivity extends AppCompatActivity
 {
     private String mTextString;
     private String mUserAliasString;
     private String mUserNameString;
-    private Date mStatusDate;
-    private Drawable mStatusImage;
+    private String mStatusDate;
+    private String mImageUrl;
+    private String mProfilepic;
     private SoloStatusPresenter mSoloPresenter;
 
     private TextView mAlias;
@@ -62,17 +59,9 @@ public class SoloStatusActivity extends AppCompatActivity
         mTextString = extras.getString("TEXT");
         mUserAliasString = extras.getString("USER_NAME");
         mUserNameString = extras.getString("FULL_NAME");
-        mStatusDate = (Date) extras.get("DATE");
-        try
-        {
-            Bitmap bitmap  = (Bitmap) extras.get("IMG");
-            mStatusImage = new BitmapDrawable(bitmap);
-        }
-        catch (Exception ex)
-        {
-            ex.printStackTrace();
-            mStatusImage = null;
-        }
+        mStatusDate = extras.getString("DATE");
+        mImageUrl = extras.getString("attachment");
+        mProfilepic = extras.getString("profilePicture");
 
         mAlias = findViewById(R.id.status_user_alias);
         mAlias.setText(mUserAliasString);
@@ -82,15 +71,22 @@ public class SoloStatusActivity extends AppCompatActivity
 
 
         mStatusTimeStamp = findViewById(R.id.status_timestamp);
-        String date = Month.values()[mStatusDate.getMonth()] + " " + mStatusDate.getDay();
-        mStatusTimeStamp.setText(date);
+
+        mStatusTimeStamp.setText(mStatusDate);
 
         mStatusText = findViewById(R.id.status_text);
         mStatusText.setText(mTextString);
 
+        mProfilePicture = findViewById(R.id.status_profile_picture);
+        Picasso.get().load(mProfilepic).into(mProfilePicture);
+
 //        mSoloPresenter = new SoloStatusPresenter(mUserAliasString, mStatusDate, mTextString);
         mStatusImageView = findViewById(R.id.status_image);
+        mStatusImageView.setVisibility(View.VISIBLE);
+        Picasso.get().load(mImageUrl).into(mStatusImageView);
 
+
+//        mSoloPresenter.
 
 //        if(mSoloPresenter.hasImage())
 //        {

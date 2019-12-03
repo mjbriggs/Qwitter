@@ -4,12 +4,12 @@
     android:id="@+id/main_menu">
     <item
         android:id="@+id/menu_search_button"
-        android:title="Search"
+        android:title="@string/search_text"
         />
     <item
         android:id="@+id/logout_button"
-        android:title="Logout"
+        android:title="@string/logout_text"
         />
     <item android:id="@+id/update_profile_picture"
-        android:title="Update profile Image"/>
+        android:title="@string/update_pic_text"/>
 </menu>

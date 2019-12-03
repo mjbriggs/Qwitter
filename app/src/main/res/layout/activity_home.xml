@@ -52,7 +52,10 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        android:clipToPadding="false"/>
+        android:clipToPadding="false">
+
+
+    </androidx.viewpager.widget.ViewPager>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
@@ -62,6 +65,17 @@
         android:layout_marginBottom="15dp"
         android:layout_marginRight="10dp"
         app:srcCompat="@drawable/create_text_icon_foreground" />
+
+    <ProgressBar
+        android:id="@+id/home_progress_bar"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center"
+        android:layout_marginBottom="100dp"
+        android:visibility="invisible"
+        />
+
     <!--        android:layout_margin="@dimen/fab_margin"-->
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

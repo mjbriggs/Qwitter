@@ -1,6 +1,7 @@
 package com.michael.qwitter.View;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.View;
@@ -14,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.michael.qwitter.Presenter.CreateStatusPresenter;
 import com.michael.qwitter.Presenter.HomePresenter;
 import com.michael.qwitter.R;
+import com.squareup.picasso.Picasso;
 
 public class CreateStatusActivity extends AppCompatActivity
 {
@@ -23,6 +25,7 @@ public class CreateStatusActivity extends AppCompatActivity
     private TextView mName;
     private TextView mAlias;
     private EditText mStatus;
+    private EditText mUrl;
     private ImageView mProfilePicture;
     private CreateStatusPresenter mCreateStatusPresenter;
     private HomePresenter mHomePresenter;
@@ -62,6 +65,8 @@ public class CreateStatusActivity extends AppCompatActivity
 
         mCreateStatusPresenter.setStatusUser(mUserAlias);
 
+        mUrl = findViewById(R.id.create_status_attachment_url);
+
         mStatus = findViewById(R.id.status_text);
         mStatus.setSelection(0);
 
@@ -71,17 +76,8 @@ public class CreateStatusActivity extends AppCompatActivity
         mAlias = findViewById(R.id.create_status_user_alias);
         mAlias.setText(mCreateStatusPresenter.getUserAlias());
 
-        mProfilePicture = findViewById(R.id.create_profile_picture);
-        //TODO fix image loading and saving
-//        try
-//        {
-//            mProfilePicture.setImageBitmap(mCreateStatusPresenter.getUserProfilePicture());
-//        }
-//        catch (Exception e)
-//        {
-//            e.printStackTrace();
-//            mProfilePicture.setImageBitmap(null);
-//        }
+        mProfilePicture = findViewById(R.id.create_status_profile_picture);
+        Picasso.get().load(mCreateStatusPresenter.getImageURL()).into(mProfilePicture);
 
         mShareButton = findViewById(R.id.share_button);
         mShareButton.setOnClickListener(new View.OnClickListener()
@@ -120,7 +116,10 @@ public class CreateStatusActivity extends AppCompatActivity
             @Override
             public void onClick(View v)
             {
-                dispatchTakePictureIntent();
+                mAddImageButton.setBackgroundColor(Color.DKGRAY);
+                mAddVideoButton.setBackgroundColor(Color.LTGRAY);
+                mCreateStatusPresenter.addAsImage(mUrl.getText().toString());
+//                dispatchTakePictureIntent();
             }
         });
 
@@ -130,7 +129,9 @@ public class CreateStatusActivity extends AppCompatActivity
             @Override
             public void onClick(View v)
             {
-                dispatchTakeVideoIntent();
+                mAddVideoButton.setBackgroundColor(Color.DKGRAY);
+                mAddImageButton.setBackgroundColor(Color.LTGRAY);
+                mCreateStatusPresenter.addAsVideo(mUrl.getText().toString());
             }
         });
     }

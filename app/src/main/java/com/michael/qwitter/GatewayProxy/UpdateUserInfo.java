@@ -2,6 +2,8 @@ package com.michael.qwitter.GatewayProxy;
 
 import android.util.Log;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.michael.qwitter.GatewayProxy.ProxyInterfaces.IProxy;
 import com.michael.qwitter.Model.User;
 import com.michael.qwitter.Utils.Global;
@@ -39,7 +41,32 @@ public class UpdateUserInfo implements IProxy
             obj.put("firstName",mUser.getFirstName());
             obj.put("lastName",  mUser.getLastName());
             obj.put("email", mUser.getUserEmail());
-            obj.put("profilePicture", mUser.getProfilePicture().getImagePath());
+            byte [] arr = mUser.getProfilePicture().getImageBuffer();
+            GsonBuilder gsonBuilder = new GsonBuilder();
+            gsonBuilder.setPrettyPrinting();
+            Gson gson = gsonBuilder.create();
+//            JsonArray jsonArray = new JsonArray();
+////            arr.toString();
+//            StringBuilder sb = new StringBuilder();
+//            sb.append("[");
+//            for (int i = 0; i < arr.length; i++)
+//            {
+////                if (i % 100 == 0)
+////                {
+////                    sb.append("\n");
+////                }
+//                if (i != arr.length - 1)
+//                    sb.append(arr[i] + ",");
+//                else
+//                    sb.append(arr[i] + "]");
+//
+//
+//            }
+//            sb.append("]");
+
+            obj.put("profilePicture", gson.toJson(arr));
+//            obj.put("profilePicture",  gson.fromJson(jsonArr, byte[].class));
+//            Log.i(Global.INFO, "byte array \n" + gson.toJson(arr));
 
 //            Log.i(Global.INFO, "Reqbody for add status" + obj.toString());
             RequestBody body = RequestBody.create(obj.toString().getBytes());

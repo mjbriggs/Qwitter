@@ -7,14 +7,17 @@ import com.michael.qwitter.DummyData.UserDatabase;
 import com.michael.qwitter.GatewayFacade.Accessor;
 import com.michael.qwitter.GatewayFacade.IAccessor;
 import com.michael.qwitter.Model.Image;
+import com.michael.qwitter.Model.ModelInterfaces.IAttachment;
 import com.michael.qwitter.Model.Status;
 import com.michael.qwitter.Model.User;
+import com.michael.qwitter.Model.Video;
 
 public class CreateStatusPresenter
 {
     private UserDatabase mUserDatabase;
     private User mStatusUser;
     private Status mStatus;
+    private IAttachment mAttatchment;
     private IAccessor mAccessor;
 
     public CreateStatusPresenter()
@@ -22,6 +25,32 @@ public class CreateStatusPresenter
         mStatusUser = new User("","");
         mAccessor = new Accessor();
     }
+
+    public void addAsImage(String url)
+    {
+        Image img = new Image(mStatusUser.getUserAlias());
+        img.setFilePath(url);
+        mAttatchment = img;
+//        mStatus.setAttachment(img);
+    }
+
+    public void addAsVideo(String url)
+    {
+        Video vid = new Video(mStatusUser.getUserAlias());
+        vid.setFilePath(url);
+        mAttatchment = vid;
+//        mStatus.setAttachment(vid);
+
+    }
+
+    public String getImageURL()
+    {
+        if (mStatusUser == null)
+            return "";
+
+        return mStatusUser.getProfilePicture().getFilePath();
+    }
+
 
     //get name, alias, image
 
@@ -95,5 +124,7 @@ public class CreateStatusPresenter
         String alias = mStatusUser.getUserAlias();
         String fullName = mStatusUser.getFirstName() + " " + mStatusUser.getLastName();
         mStatus = new Status(statusText, alias, fullName);
+        if (mAttatchment != null)
+            mStatus.setAttachment(mAttatchment);
     }
 }

@@ -19,6 +19,7 @@ public class Search implements ISearch
     public Search(String query)
     {
         String searchType = "";
+        mQuery = query;
         if(query.charAt(0) == '#')
         {
             searchType = "hashtag";
@@ -27,15 +28,12 @@ public class Search implements ISearch
         else if(query.charAt(0) == '@')
         {
             searchType = "mention";
-            mQuery = query.substring(1);
-        }
-        else
-        {
-            mQuery = query;
+//            mQuery = query.substring(1);
         }
 
         mUrl = Global.BASE_URL + "search?query=" + mQuery + "&type=" + searchType;
         mStatusList = null;
+//        mGetStatusList = new GetStatusList("results", mQuery, mUrl);
         mGetStatusList = new GetStatusList("", "results", "", "", mUrl);
     }
 

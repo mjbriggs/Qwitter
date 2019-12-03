@@ -187,6 +187,9 @@ public class ProfilePresenter implements IProfilePresenter
                     {
                         mProfileView.updateField("R.id.follow_name", mUser.getFirstName() + " " + mUser.getLastName());
                         mProfileView.updateField("R.id.follow_user_alias", fUsername);
+                        String url = mUser.getProfilePicture().getFilePath();
+                        if (url != null)
+                            mProfileView.updateField("R.id.follow_profile_picture", url);
                     }
                 });
 

@@ -64,7 +64,13 @@ public class FollowingPresenter implements RelationPresenter
         final String username = usernameIn;
         new Thread(new Runnable() {
             public void run() {
-                Following newFollowing = mAccessor.getFollowing(username, PageTracker.getInstance().getFollowingLastKey());
+                String lk = "";
+                if (mFollowing.getFollowing().size() > 0)
+                {
+                    lk = mFollowing.getFollowing().get(mFollowing.getFollowing().size() - 1).getUserAlias();
+                }
+
+                Following newFollowing = mAccessor.getFollowing(username, lk);
                 PageTracker.getInstance().addFollowingLastKey(newFollowing.getFollowing().size());
                 for (User user : newFollowing.getFollowing())
                 {
@@ -82,4 +88,6 @@ public class FollowingPresenter implements RelationPresenter
 
 
     }
+
+
 }

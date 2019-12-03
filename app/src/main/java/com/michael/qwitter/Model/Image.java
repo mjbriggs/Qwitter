@@ -10,6 +10,7 @@ import androidx.annotation.Nullable;
 
 import com.michael.qwitter.Model.ModelInterfaces.IAttachment;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 
 //Every image is associated with a user
@@ -18,6 +19,7 @@ public class Image implements IAttachment
     private static final int REQUEST_PHOTO= 2;
     private String mUsername;
     private String mImagePath;
+    private Bitmap mBitMap;
 
 
     public Image(String mUsername)
@@ -35,6 +37,12 @@ public class Image implements IAttachment
     {
         File filesDir = context.getFilesDir();
         return new File (filesDir, getFileName(type));
+    }
+
+    @Override
+    public String format()
+    {
+        return "image";
     }
 
     @Override
@@ -130,4 +138,24 @@ public class Image implements IAttachment
     {
         return mImagePath;
     }
+
+    public Bitmap getBitMap()
+    {
+        return mBitMap;
+    }
+
+    public void setBitMap(Bitmap mBitMap)
+    {
+        this.mBitMap = mBitMap;
+    }
+
+    public byte[] getImageBuffer() {
+        Bitmap immagex=mBitMap;
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        immagex.compress(Bitmap.CompressFormat.PNG, 100, baos);
+        byte[] b = baos.toByteArray();
+//        String imageEncoded = Base64.encodeToString(b,Base64.DEFAULT);
+        return b;
+    }
+
 }

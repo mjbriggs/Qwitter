@@ -224,7 +224,8 @@ public class User
     {
         return "Alias: " + mUserAlias +
                 "\nFirst Name: " + mFirstName +
-                "\nLast Name: " + mLastName + "\n";
+                "\nLast Name: " + mLastName +
+                "\nemail: " + mUserEmail;
     }
 
     @NonNull
