@@ -40,6 +40,8 @@ import com.michael.qwitter.Utils.Global;
 import com.michael.qwitter.Utils.Month;
 import com.michael.qwitter.Utils.StatusParser;
 import com.michael.qwitter.View.ViewInterfaces.IView;
+import com.squareup.picasso.MemoryPolicy;
+import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -264,7 +266,11 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
 //                mStatusMonth = Month.values()[mStatusDate.getMonth()];
                 String date =stat.getTimestamp().split("-")[0];
                 holder.statusTimeStamp.setText(date);
-                Picasso.get().load(mFeedPresenter.getUserProfilePic(position)).into(holder.profilePicture);
+                Picasso.get().invalidate(mFeedPresenter.getUserProfilePic(position));
+                Picasso.get().load(mFeedPresenter.getUserProfilePic(position))
+                        .memoryPolicy(MemoryPolicy.NO_CACHE, MemoryPolicy.NO_STORE)
+                        .networkPolicy(NetworkPolicy.NO_CACHE, NetworkPolicy.NO_STORE)
+                        .into(holder.profilePicture);
 
                 if(stat.getAttachment() != null)
                 {
@@ -330,7 +336,11 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
 //                mStatusMonth = Month.values()[mStatusDate.getMonth()];
                 String date = stat.getTimestamp().split("-")[0];
                 holder.statusTimeStamp.setText(date);
-                Picasso.get().load(mStoryPresenter.getUserProfilePic(position)).into(holder.profilePicture);
+                Picasso.get().invalidate(mStoryPresenter.getUserProfilePic(position));
+                Picasso.get().load(mStoryPresenter.getUserProfilePic(position))
+                        .memoryPolicy(MemoryPolicy.NO_CACHE, MemoryPolicy.NO_STORE)
+                        .networkPolicy(NetworkPolicy.NO_CACHE, NetworkPolicy.NO_STORE)
+                        .into(holder.profilePicture);
 
                 if(stat.getAttachment() != null)
                 {
@@ -394,7 +404,11 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
 //                mStatusMonth = Month.values()[mStatusDate.getMonth()];
                 String date = mSearchPresenter.getStatus(position).getTimestamp().split("-")[0];
                 holder.statusTimeStamp.setText(date);
-                Picasso.get().load(mSearchPresenter.getUserProfilePic(position)).into(holder.profilePicture);
+                Picasso.get().invalidate(mSearchPresenter.getUserProfilePic(position));
+                Picasso.get().load(mSearchPresenter.getUserProfilePic(position))
+                        .memoryPolicy(MemoryPolicy.NO_CACHE, MemoryPolicy.NO_STORE)
+                        .networkPolicy(NetworkPolicy.NO_CACHE, NetworkPolicy.NO_STORE)
+                        .into(holder.profilePicture);
 
 
                 if(stat.getAttachment() != null)
@@ -557,7 +571,13 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
 
                 String url = mFollowersPresenter.getFollowers().getFollowers().get(position).getProfilePicture().getFilePath();
                 if (url != null)
-                    Picasso.get().load(url).into(holder.profilePicture);
+                {
+                    Picasso.get().invalidate(url);
+                    Picasso.get().load(url)
+                            .memoryPolicy(MemoryPolicy.NO_CACHE, MemoryPolicy.NO_STORE)
+                            .networkPolicy(NetworkPolicy.NO_CACHE, NetworkPolicy.NO_STORE)
+                            .into(holder.profilePicture);
+                }
 
 //                mFollowersPresenter.getFollowers().getFollowers().get(position).getProfilePicture();
 
@@ -573,7 +593,13 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
 
                 String url = mFollowingPresenter.getFollowing().getFollowing().get(position).getProfilePicture().getFilePath();
                 if (url != null)
-                    Picasso.get().load(url).into(holder.profilePicture);
+                {
+                    Picasso.get().invalidate(url);
+                    Picasso.get().load(url)
+                            .memoryPolicy(MemoryPolicy.NO_CACHE, MemoryPolicy.NO_STORE)
+                            .networkPolicy(NetworkPolicy.NO_CACHE, NetworkPolicy.NO_STORE)
+                            .into(holder.profilePicture);
+                }
             }
         }
 

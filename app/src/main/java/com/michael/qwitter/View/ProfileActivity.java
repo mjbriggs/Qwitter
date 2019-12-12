@@ -34,6 +34,7 @@ public class ProfileActivity extends HomeActivity implements IProfileView
 {
     private LinearLayout mUserInfoLayout;
     private LinearLayout mFollowLayout;
+    private LinearLayout mUserFollowLayout;
     private String mUserAlias;
     private TextView mUserName;
     private TextView mUserAliasView;
@@ -73,7 +74,6 @@ public class ProfileActivity extends HomeActivity implements IProfileView
         mUserInfoLayout.setMinimumHeight(300);
 
         mLoadingIcon = findViewById(R.id.home_progress_bar);
-
 
         mFollowLayout = findViewById(R.id.follow_view);
         mFollowLayout.setBackgroundColor(Color.WHITE);
@@ -117,13 +117,13 @@ public class ProfileActivity extends HomeActivity implements IProfileView
         //this is what blows up the feed fragment
         AppBarLayout appBarLayout = findViewById(R.id.appbar);
         CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) appBarLayout.getLayoutParams();
-        params.setMargins(0, 300, 0,0);
+        params.setMargins(0, 375, 0,0);
         appBarLayout.setLayoutParams(params);
 
         SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(this, getSupportFragmentManager(), mUserAlias, "FEED", this);
         ViewPager viewPager = findViewById(R.id.view_pager);
         viewPager.setAdapter(sectionsPagerAdapter);
-        viewPager.setPadding(0, 0, 0, 300);
+        viewPager.setPadding(0, 0, 0, 375);
         TabLayout tabs = findViewById(R.id.tabs);
         tabs.setupWithViewPager(viewPager);
         tabs.setSelectedTabIndicatorColor(Color.WHITE);

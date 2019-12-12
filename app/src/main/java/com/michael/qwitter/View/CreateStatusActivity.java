@@ -15,6 +15,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.michael.qwitter.Presenter.CreateStatusPresenter;
 import com.michael.qwitter.Presenter.HomePresenter;
 import com.michael.qwitter.R;
+import com.squareup.picasso.MemoryPolicy;
+import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
 
 public class CreateStatusActivity extends AppCompatActivity
@@ -77,7 +79,11 @@ public class CreateStatusActivity extends AppCompatActivity
         mAlias.setText(mCreateStatusPresenter.getUserAlias());
 
         mProfilePicture = findViewById(R.id.create_status_profile_picture);
-        Picasso.get().load(mCreateStatusPresenter.getImageURL()).into(mProfilePicture);
+        Picasso.get().invalidate(mCreateStatusPresenter.getImageURL());
+        Picasso.get().load(mCreateStatusPresenter.getImageURL())
+                .memoryPolicy(MemoryPolicy.NO_CACHE, MemoryPolicy.NO_STORE)
+                .networkPolicy(NetworkPolicy.NO_CACHE, NetworkPolicy.NO_STORE)
+                .into(mProfilePicture);
 
         mShareButton = findViewById(R.id.share_button);
         mShareButton.setOnClickListener(new View.OnClickListener()
