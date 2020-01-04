@@ -244,6 +244,14 @@ public class RegistrationPresenter extends AsyncTask<String, Integer, String> im
                             @Override
                             public void onError(Exception e)
                             {
+                                runOnUiThread(new Runnable()
+                                {
+                                    @Override
+                                    public void run()
+                                    {
+                                        mRegistrationView.postToast("Invalid username and/or password");
+                                    }
+                                });
                                 //mRegistrationView.postToast("Unsupported sign-in confirmation for " + username);
                                 Log.e(Global.USER_STATE, e.getMessage(), e);
                             }
@@ -320,16 +328,25 @@ public class RegistrationPresenter extends AsyncTask<String, Integer, String> im
                             @Override
                             public void run()
                             {
-                                mRegistrationView.postToast("Sign-up error");
+                                if (email == null || email.length() == 0 || !email.contains("@") || !email.contains("."))
+                                    mRegistrationView.postToast("invalid email");
+                                else
+                                    mRegistrationView.postToast("Unable to sign up, try again later");
                             }
                         });
-//                            mRegistrationView.postToast(username + " " + e.getMessage());
                     }
                 });
             }
             else
             {
-                mRegistrationView.postToast(username + " login has failed, check fields");
+                StringBuilder error = new StringBuilder();
+                if (email == null || email.length() == 0 || !email.contains("@") || !email.contains("."))
+                    mRegistrationView.postToast("invalid email");
+                else if(username == null || username.length() == 0)
+                    mRegistrationView.postToast("invalid username");
+                else
+                    mRegistrationView.postToast("invalid password");
+
                 Log.e(Global.DEBUG, "email = " + email);
                 Log.e(Global.DEBUG, "username = " + username);
                 Log.e(Global.DEBUG, "password = " + password);
@@ -374,7 +391,6 @@ public class RegistrationPresenter extends AsyncTask<String, Integer, String> im
                                     mRegistrationView.postToast("Sign-up done.");
 
                                     mRegistrationView.goTo(Global.NewUserInfoActivity);
-                                    mRegistrationView.postToast(username + " is logged in");
 
                                 }
                             }
@@ -384,6 +400,14 @@ public class RegistrationPresenter extends AsyncTask<String, Integer, String> im
                     @Override
                     public void onError(Exception e)
                     {
+                        runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                mRegistrationView.postToast(username + " verification has failed, check fields");
+                            }
+                        });
                         Log.e(TAG, "Confirm sign-up error", e);
                     }
                 });
@@ -399,28 +423,84 @@ public class RegistrationPresenter extends AsyncTask<String, Integer, String> im
     }
 
     @Override
-    public void update(String username)
+    public void update(final String username)
     {
         if(mRegistrationView.getClass().equals(NewUserInfoActivity.class))
         {
             ArrayList<String> fields =  mRegistrationView.grabTextFields();
             assert fields.size() == 3;
 
-            String firstName = fields.get(0);
-            String lastName = fields.get(1);
-            String email = fields.get(2);
+            final String firstName = fields.get(0);
+            final String lastName = fields.get(1);
+            final String email = fields.get(2);
 
-            Bitmap profilePicture = mRegistrationView.grabImageField();
+            final Bitmap profilePicture = mRegistrationView.grabImageField();
 
             if(profilePicture != null && firstName != null && lastName != null
             && firstName.length() > 0 && lastName.length() > 0 && email != null && email.length() > 0)
             {
                 this.updateUserInfo(username, firstName, lastName, email, profilePicture);
-                mRegistrationView.goTo(Global.HomeActivity);
+                mRegistrationView.goTo(Global.LoginActivity);
             }
             else
             {
-                mRegistrationView.postToast("Unable to add info to " + username + ". Make sure all fields are valid");
+                if (profilePicture == null)
+                    mRegistrationView.postToast("Please upload a profile picture");
+                else if(firstName == null || firstName.length() == 0)
+                    mRegistrationView.postToast("Please enter first name");
+                else if(lastName == null || lastName.length() == 0)
+                    mRegistrationView.postToast("Please enter last name");
+                else
+                {
+                    final User user = mAccessor.getUserInfo(username);
+                    new Thread(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            try
+                            {
+                                final String userEmail = AWSMobileClient.getInstance().getUserAttributes().get("email");
+                                if (userEmail != null && userEmail.length() > 0)
+                                {
+                                    updateUserInfo(username, firstName, lastName, userEmail, profilePicture);
+                                    runOnUiThread(new Runnable()
+                                    {
+                                        @Override
+                                        public void run()
+                                        {
+                                            mRegistrationView.goTo(Global.LoginActivity);
+                                        }
+                                    });
+                                }
+                                else
+                                    runOnUiThread(new Runnable()
+                                    {
+                                        @Override
+                                        public void run()
+                                        {
+                                            Log.e(Global.ERROR, username + " is not validated, email is " + userEmail);
+                                            mRegistrationView.postToast("you have failed to validate your account");
+                                        }
+                                    });
+                            }
+                            catch (Exception e)
+                            {
+                                runOnUiThread(new Runnable()
+                                {
+                                    @Override
+                                    public void run()
+                                    {
+                                        mRegistrationView.postToast("account validation failure");
+                                    }
+                                });
+                                Log.e(Global.ERROR, "Unable to get valid email", e);
+                            }
+                        }
+                    }).start();
+
+
+                }
             }
         }
     }

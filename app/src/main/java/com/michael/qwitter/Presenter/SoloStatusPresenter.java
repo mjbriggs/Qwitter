@@ -1,5 +1,8 @@
 package com.michael.qwitter.Presenter;
 
+import android.content.Context;
+import android.content.Intent;
+
 import com.michael.qwitter.DummyData.DummyUserDatabase;
 import com.michael.qwitter.DummyData.UserDatabase;
 import com.michael.qwitter.Model.Status;
@@ -91,5 +94,17 @@ public class SoloStatusPresenter implements StatusPresenter
     public String getNameAt(int pos)
     {
         return null;
+    }
+
+    @Override
+    public Intent getIntent()
+    {
+        return null;
+    }
+
+    @Override
+    public void handleStatusClick(Context context, int pos)
+    {
+
     }
 }

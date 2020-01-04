@@ -2,6 +2,8 @@ package com.michael.qwitter.View;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.View;
@@ -47,6 +49,7 @@ public class NewUserInfoActivity extends AppCompatActivity implements IRegistrat
         mEmail = getIntent().getExtras().getString("EMAIL");
 
 
+
         mNewUserInfoPresenter = new RegistrationPresenter(this);
         mNewUserInfoPresenter = (IRegistrationPresenter)
                 ACPresenterFactory.getInstance().createPresenter(Global.IRegistrationView, this);
@@ -77,8 +80,42 @@ public class NewUserInfoActivity extends AppCompatActivity implements IRegistrat
         });
 
         mFirstNameField = findViewById(R.id.first_name_field);
+        mFirstNameField.setOnFocusChangeListener(new View.OnFocusChangeListener()
+        {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus)
+            {
+                if (hasFocus)
+                {
+                    mFirstNameField.getBackground().setColorFilter(getColor(R.color.colorBlue),
+                            PorterDuff.Mode.SRC_ATOP);
+                }
+                else
+                {
+                    mFirstNameField.getBackground().setColorFilter(Color.GRAY,
+                            PorterDuff.Mode.SRC_ATOP);
+                }
+            }
+        });
 
         mLastNameField = findViewById(R.id.last_name_field);
+        mLastNameField.setOnFocusChangeListener(new View.OnFocusChangeListener()
+        {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus)
+            {
+                if (hasFocus)
+                {
+                    mLastNameField.getBackground().setColorFilter(getColor(R.color.colorBlue),
+                            PorterDuff.Mode.SRC_ATOP);
+                }
+                else
+                {
+                    mLastNameField.getBackground().setColorFilter(Color.GRAY,
+                            PorterDuff.Mode.SRC_ATOP);
+                }
+            }
+        });
 
 
         mCreateButton = findViewById(R.id.create_profile_button);
@@ -147,6 +184,12 @@ public class NewUserInfoActivity extends AppCompatActivity implements IRegistrat
         {
             Intent intent = new Intent(NewUserInfoActivity.this, HomeActivity.class);
             intent.putExtra("USER_NAME", mUserAlias);
+            startActivity(intent);
+            finish();
+        }
+        else if(view.equalsIgnoreCase(Global.LoginActivity))
+        {
+            Intent intent = new Intent(NewUserInfoActivity.this, LoginActivity.class);
             startActivity(intent);
             finish();
         }

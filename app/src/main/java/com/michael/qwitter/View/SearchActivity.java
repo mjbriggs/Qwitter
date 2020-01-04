@@ -3,6 +3,7 @@ package com.michael.qwitter.View;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,6 +23,8 @@ public class SearchActivity extends AppCompatActivity implements RecyclerFragmen
     private TextView mQueryView;
     private RecyclerFragment rf;
     private Button mBackButton;
+    private ProgressBar mLoadingIcon;
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -56,6 +59,8 @@ public class SearchActivity extends AppCompatActivity implements RecyclerFragmen
         ft.add(R.id.search_container, rf);
 
         ft.commit();
+
+
     }
 
     public void onFragmentInteraction(int position)
@@ -73,7 +78,14 @@ public class SearchActivity extends AppCompatActivity implements RecyclerFragmen
     @Override
     public void updateField(String field, Object object)
     {
-
+//        if (field.equalsIgnoreCase("done"))
+//        {
+//            mLoadingIcon.setVisibility(View.INVISIBLE);
+//        }
+//        else if (field.equalsIgnoreCase("starting"))
+//        {
+//            mLoadingIcon.setVisibility(View.VISIBLE);
+//        }
     }
 
     @Override

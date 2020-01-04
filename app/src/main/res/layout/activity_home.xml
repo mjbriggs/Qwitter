@@ -75,15 +75,15 @@
         android:layout_marginRight="10dp"
         app:srcCompat="@drawable/create_text_icon_foreground" />
 
-    <ProgressBar
-        android:id="@+id/home_progress_bar"
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center"
-        android:layout_marginBottom="100dp"
-        android:visibility="invisible"
-        />
+<!--    <ProgressBar-->
+<!--        android:id="@+id/home_progress_bar"-->
+<!--        style="?android:attr/progressBarStyleLarge"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_gravity="bottom|center"-->
+<!--        android:layout_marginBottom="100dp"-->
+<!--        android:visibility="invisible"-->
+<!--        />-->
 
     <!--        android:layout_margin="@dimen/fab_margin"-->
 

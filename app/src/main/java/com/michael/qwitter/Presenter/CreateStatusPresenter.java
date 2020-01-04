@@ -10,7 +10,6 @@ import com.michael.qwitter.Model.Image;
 import com.michael.qwitter.Model.ModelInterfaces.IAttachment;
 import com.michael.qwitter.Model.Status;
 import com.michael.qwitter.Model.User;
-import com.michael.qwitter.Model.Video;
 
 public class CreateStatusPresenter
 {
@@ -19,28 +18,39 @@ public class CreateStatusPresenter
     private Status mStatus;
     private IAttachment mAttatchment;
     private IAccessor mAccessor;
+    private String mAttachmentType;
 
     public CreateStatusPresenter()
     {
         mStatusUser = new User("","");
         mAccessor = new Accessor();
+        mAttachmentType = "none";
     }
 
     public void addAsImage(String url)
     {
-        Image img = new Image(mStatusUser.getUserAlias());
-        img.setFilePath(url);
-        mAttatchment = img;
-//        mStatus.setAttachment(img);
+//        Image img = new Image(mStatusUser.getUserAlias());
+//        img.setFilePath(url);
+//        mAttatchment = img;
+        mAttachmentType = "image";
     }
 
     public void addAsVideo(String url)
     {
-        Video vid = new Video(mStatusUser.getUserAlias());
-        vid.setFilePath(url);
-        mAttatchment = vid;
-//        mStatus.setAttachment(vid);
+//        Video vid = new Video(mStatusUser.getUserAlias());
+//        vid.setFilePath(url);
+//        mAttatchment = vid;
+        mAttachmentType = "video";
+    }
 
+    public void setUrl(String url)
+    {
+        if (mAttachmentType.equalsIgnoreCase("image"))
+        {
+            Image img = new Image(mStatusUser.getUserAlias());
+            img.setFilePath(url);
+            mAttatchment = img;
+        }
     }
 
     public String getImageURL()
@@ -50,9 +60,6 @@ public class CreateStatusPresenter
 
         return mStatusUser.getProfilePicture().getFilePath();
     }
-
-
-    //get name, alias, image
 
     public String getUserFullName()
     {
@@ -72,9 +79,6 @@ public class CreateStatusPresenter
     }
     public void addStatusToUser()
     {
-//        mStatusUser.addStatusToStory(mStatus);
-//        //mStatusUser.addStatusToFeed(mStatus);
-//        mUserDatabase.updateUser(mStatusUser.getUserAlias(), mStatusUser);
         new Thread(new Runnable()
         {
             @Override
@@ -98,15 +102,6 @@ public class CreateStatusPresenter
     public void setStatusUser(String statusUserIn)
     {
         mStatusUser = mAccessor.getUserInfo(statusUserIn);
-
-//        final String statusUser = statusUserIn;
-//        new Thread(new Runnable()
-//        {
-//            @Override
-//            public void run()
-//            {
-//            }
-//        }).start();
     }
 
     public Status getStatus()

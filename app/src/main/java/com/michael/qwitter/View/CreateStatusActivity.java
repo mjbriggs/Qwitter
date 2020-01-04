@@ -5,9 +5,12 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,7 +22,7 @@ import com.squareup.picasso.MemoryPolicy;
 import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
 
-public class CreateStatusActivity extends AppCompatActivity
+public class CreateStatusActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener
 {
 
     private Button mShareButton;
@@ -34,6 +37,7 @@ public class CreateStatusActivity extends AppCompatActivity
     private String mUserAlias;
     private Button mAddImageButton;
     private Button mAddVideoButton;
+    private Spinner mUrlTypeSpinner;
 
     private void dispatchTakePictureIntent()
     {
@@ -69,6 +73,13 @@ public class CreateStatusActivity extends AppCompatActivity
 
         mUrl = findViewById(R.id.create_status_attachment_url);
 
+        mUrlTypeSpinner = findViewById(R.id.url_type_spinner);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.url_type, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mUrlTypeSpinner.setAdapter(adapter);
+        mUrlTypeSpinner.setOnItemSelectedListener(this);
+
         mStatus = findViewById(R.id.status_text);
         mStatus.setSelection(0);
 
@@ -91,6 +102,7 @@ public class CreateStatusActivity extends AppCompatActivity
             @Override
             public void onClick(View v)
             {
+                mCreateStatusPresenter.setUrl(mUrl.getText().toString());
                 mCreateStatusPresenter.setStatus(mStatus.getText().toString());
                 mCreateStatusPresenter.addStatusToUser();
 
@@ -140,5 +152,20 @@ public class CreateStatusActivity extends AppCompatActivity
                 mCreateStatusPresenter.addAsVideo(mUrl.getText().toString());
             }
         });
+    }
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id)
+    {
+        if (position == 1)
+        {
+            mCreateStatusPresenter.addAsImage(mUrl.getText().toString());
+        }
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent)
+    {
+
     }
 }

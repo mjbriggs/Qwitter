@@ -2,7 +2,11 @@ package com.michael.qwitter.View;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -43,12 +47,121 @@ public class SignUpActivity extends AppCompatActivity implements IRegistrationVi
         setContentView(R.layout.activity_sign_up);
 
         mEmailField = findViewById(R.id.email_field);
+        mEmailField.setOnFocusChangeListener(new View.OnFocusChangeListener()
+        {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus)
+            {
+                if (hasFocus && mEmailField.getText().toString().contains("@") && mEmailField.getText().toString().contains("."))
+                {
+                    mEmailField.getBackground().setColorFilter(getColor(R.color.colorBlue),
+                            PorterDuff.Mode.SRC_ATOP);
+                }
+                else if(hasFocus && (!mEmailField.getText().toString().contains("@") || !mEmailField.getText().toString().contains(".")))
+                {
+                    mEmailField.getBackground().setColorFilter(Color.RED,
+                            PorterDuff.Mode.SRC_ATOP);
+                }
+                else
+                {
+                    mEmailField.getBackground().setColorFilter(Color.GRAY,
+                            PorterDuff.Mode.SRC_ATOP);
+                }
+            }
+        });
+        mEmailField.addTextChangedListener(new TextWatcher()
+        {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after)
+            {
+                mEmailField.getBackground().setColorFilter(Color.RED,
+                        PorterDuff.Mode.SRC_ATOP);
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count)
+            {
+                if (s.toString().contains("@") && s.toString().contains("."))
+                {
+                    mEmailField.getBackground().setColorFilter(getColor(R.color.colorBlue),
+                            PorterDuff.Mode.SRC_ATOP);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s)
+            {
+
+            }
+        });
 
         mUserField = findViewById(R.id.user_field);
+        mUserField.setOnFocusChangeListener(new View.OnFocusChangeListener()
+        {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus)
+            {
+                if (hasFocus)
+                {
+                    mUserField.getBackground().setColorFilter(getColor(R.color.colorBlue),
+                            PorterDuff.Mode.SRC_ATOP);
+                }
+                else
+                {
+                    mUserField.getBackground().setColorFilter(Color.GRAY,
+                            PorterDuff.Mode.SRC_ATOP);
+                }
+            }
+        });
 
         mPasswordField = findViewById(R.id.password_field);
+        mPasswordField.setOnFocusChangeListener(new View.OnFocusChangeListener()
+        {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus)
+            {
+                if (hasFocus && mPasswordField.getText().toString().length() < 8)
+                {
+                    mPasswordField.getBackground().setColorFilter(Color.RED,
+                            PorterDuff.Mode.SRC_ATOP);
+                }
+                else if (!hasFocus)
+                {
+                    mPasswordField.getBackground().setColorFilter(Color.GRAY,
+                            PorterDuff.Mode.SRC_ATOP);
+                }
+                else if(hasFocus && mPasswordField.getText().toString().length() >= 8)
+                {
+                    mPasswordField.getBackground().setColorFilter(getColor(R.color.colorBlue),
+                            PorterDuff.Mode.SRC_ATOP);
+                }
+            }
+        });
+        mPasswordField.addTextChangedListener(new TextWatcher()
+        {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after)
+            {
+                mPasswordField.getBackground().setColorFilter(Color.RED,
+                        PorterDuff.Mode.SRC_ATOP);
+            }
 
-//        mSignUpPresenter = new RegistrationPresenter(this);
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count)
+            {
+                if (s.length() > 7)
+                {
+                    mPasswordField.getBackground().setColorFilter(getColor(R.color.colorBlue),
+                            PorterDuff.Mode.SRC_ATOP);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s)
+            {
+
+            }
+        });
 
         mSignUpPresenter = (IRegistrationPresenter)
                 ACPresenterFactory.getInstance().createPresenter(Global.IRegistrationView, this);

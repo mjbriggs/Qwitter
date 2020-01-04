@@ -135,8 +135,8 @@ public class HomeActivity extends AppCompatActivity implements RecyclerFragment.
 //        });
 
 
-        mLoadingIcon = findViewById(R.id.home_progress_bar);
-        mLoadingIcon.setVisibility(View.INVISIBLE);
+//        mLoadingIcon = findViewById(R.id.home_progress_bar);
+//        mLoadingIcon.setVisibility(View.INVISIBLE);
     }
 
     @Override
@@ -243,14 +243,14 @@ public class HomeActivity extends AppCompatActivity implements RecyclerFragment.
         {
             mSearchView.setQuery((String) object, false);
         }
-        else if (field.equalsIgnoreCase("done"))
-        {
-            mLoadingIcon.setVisibility(View.INVISIBLE);
-        }
-        else if (field.equalsIgnoreCase("starting"))
-        {
-            mLoadingIcon.setVisibility(View.VISIBLE);
-        }
+//        else if (field.equalsIgnoreCase("done"))
+//        {
+//            mLoadingIcon.setVisibility(View.INVISIBLE);
+//        }
+//        else if (field.equalsIgnoreCase("starting"))
+//        {
+//            mLoadingIcon.setVisibility(View.VISIBLE);
+//        }
     }
 
     public void onFragmentInteraction(int position)

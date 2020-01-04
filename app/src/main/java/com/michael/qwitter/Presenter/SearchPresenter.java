@@ -1,5 +1,7 @@
 package com.michael.qwitter.Presenter;
 
+import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 
 import com.michael.qwitter.DummyData.DummyUserDatabase;
@@ -65,6 +67,7 @@ public class SearchPresenter implements StatusPresenter
                     public void run()
                     {
                         mSearchView.updateField("SEARCH", null);
+
                     }
                 });
             }
@@ -112,5 +115,16 @@ public class SearchPresenter implements StatusPresenter
     {
         User user = mProfiles.get(pos);
         return user.getFirstName() + " " + user.getLastName();
+    }
+
+    @Override
+    public Intent getIntent()
+    {
+        return null;
+    }
+    @Override
+    public void handleStatusClick(Context context, int position)
+    {
+
     }
 }

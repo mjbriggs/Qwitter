@@ -1,12 +1,17 @@
 package com.michael.qwitter.Presenter;
 
+import android.content.Context;
+import android.content.Intent;
+
 import com.michael.qwitter.GatewayFacade.Accessor;
 import com.michael.qwitter.GatewayFacade.IAccessor;
+import com.michael.qwitter.Model.ModelInterfaces.IAttachment;
 import com.michael.qwitter.Model.Status;
 import com.michael.qwitter.Model.User;
 import com.michael.qwitter.Presenter.PresenterInterfaces.StatusPresenter;
 import com.michael.qwitter.Utils.Global;
 import com.michael.qwitter.Utils.PageTracker;
+import com.michael.qwitter.View.SoloStatusActivity;
 import com.michael.qwitter.View.ViewInterfaces.IView;
 
 import java.util.ArrayList;
@@ -22,6 +27,7 @@ public class StoryPresenter implements StatusPresenter
     private IAccessor mAccessor;
     private IView mStoryView;
     private List<String> mProfileLinks;
+    private String mUserAlias;
 
     public StoryPresenter()
     {
@@ -30,12 +36,18 @@ public class StoryPresenter implements StatusPresenter
         mAccessor = new Accessor();
         mStoryList = new ArrayList<>();
         mProfileLinks = new ArrayList<>();
+        mUserAlias = "";
     }
 
     public StoryPresenter(IView storyView)
     {
         this();
         mStoryView = storyView;
+    }
+    public StoryPresenter(IView storyView, String username)
+    {
+        this(storyView);
+        mUserAlias = username;
     }
 
     @Override
@@ -111,5 +123,48 @@ public class StoryPresenter implements StatusPresenter
     public String getNameAt(int pos)
     {
         return null;
+    }
+
+    @Override
+    public Intent getIntent()
+    {
+        return null;
+    }
+
+    @Override
+    public void handleStatusClick(Context context, int position)
+    {
+        Intent intent = new Intent(context, SoloStatusActivity.class);
+        Status status = this.mStoryList.get(position);
+        intent.putExtra("TEXT", status.getText());
+        intent.putExtra("USER_NAME", this.mUserAlias);
+        intent.putExtra("FULL_NAME", this.getUserFullName());
+        intent.putExtra("DATE", status.getTimestamp().split("-")[0]);
+        intent.putExtra("profilePicture", this.getUserProfilePic(position));
+
+        IAttachment att = status.getAttachment();
+        if (att != null)
+        {
+            intent.putExtra("attachment", att.getFilePath());
+            intent.putExtra("type", att.format());
+            if (att.format().equalsIgnoreCase("video"))
+                return;
+        }
+        else
+        {
+            intent.putExtra("attachment", "none");
+            intent.putExtra("type", "none");
+        }
+
+        final Context fContext = context;
+        final Intent fIntent = intent;
+        runOnUiThread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                fContext.startActivity(fIntent);
+            }
+        });
     }
 }

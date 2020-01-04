@@ -2,7 +2,11 @@ package com.michael.qwitter.View;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -42,8 +46,71 @@ public class LoginActivity extends AppCompatActivity implements IRegistrationVie
                 ACPresenterFactory.getInstance().createPresenter(Global.IRegistrationView, this);
 
         mUserField = findViewById(R.id.user_field);
+        mUserField.setOnFocusChangeListener(new View.OnFocusChangeListener()
+        {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus)
+            {
+                if (hasFocus)
+                {
+                    mUserField.getBackground().setColorFilter(getColor(R.color.colorBlue),
+                            PorterDuff.Mode.SRC_ATOP);
+                }
+                else
+                {
+                    mUserField.getBackground().setColorFilter(Color.GRAY,
+                            PorterDuff.Mode.SRC_ATOP);
+                }
+            }
+        });
         mPasswordField = findViewById(R.id.password_field);
+        mPasswordField.setOnFocusChangeListener(new View.OnFocusChangeListener()
+        {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus)
+            {
+                if (hasFocus && mPasswordField.getText().toString().length() < 8)
+                {
+                    mPasswordField.getBackground().setColorFilter(Color.RED,
+                            PorterDuff.Mode.SRC_ATOP);
+                }
+                else if (!hasFocus)
+                {
+                    mPasswordField.getBackground().setColorFilter(Color.GRAY,
+                            PorterDuff.Mode.SRC_ATOP);
+                }
+                else if(hasFocus && mPasswordField.getText().toString().length() >= 8)
+                {
+                    mPasswordField.getBackground().setColorFilter(getColor(R.color.colorBlue),
+                            PorterDuff.Mode.SRC_ATOP);
+                }
+            }
+        });
+        mPasswordField.addTextChangedListener(new TextWatcher()
+        {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after)
+            {
+                mPasswordField.getBackground().setColorFilter(Color.RED,
+                        PorterDuff.Mode.SRC_ATOP);
+            }
 
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count)
+            {
+                if (s.length() > 7)
+                {
+                    mPasswordField.getBackground().setColorFilter(getColor(R.color.colorBlue),
+                            PorterDuff.Mode.SRC_ATOP);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s)
+            {
+
+            }
+        });
         mLoginButton = findViewById(R.id.login_button);
         mLoginButton.setOnClickListener(new View.OnClickListener()
         {
@@ -105,11 +172,15 @@ public class LoginActivity extends AppCompatActivity implements IRegistrationVie
         {
             Intent intent = new Intent(LoginActivity.this, NewUserInfoActivity.class);
             intent.putExtra("USER_NAME", mUserAlias);
+            mPasswordField.getBackground().setColorFilter(Color.GRAY,
+                    PorterDuff.Mode.SRC_ATOP);
             startActivity(intent);
         }
         else if(view.equals(Global.SignUpActivity))
         {
             Intent intent = new Intent(LoginActivity.this, SignUpActivity.class);
+            mPasswordField.getBackground().setColorFilter(Color.GRAY,
+                    PorterDuff.Mode.SRC_ATOP);
             startActivity(intent);
         }
     }

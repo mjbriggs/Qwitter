@@ -73,7 +73,7 @@ public class ProfileActivity extends HomeActivity implements IProfileView
         mUserInfoLayout.setVisibility(View.VISIBLE);
         mUserInfoLayout.setMinimumHeight(300);
 
-        mLoadingIcon = findViewById(R.id.home_progress_bar);
+//        mLoadingIcon = findViewById(R.id.home_progress_bar);
 
         mFollowLayout = findViewById(R.id.follow_view);
         mFollowLayout.setBackgroundColor(Color.WHITE);
@@ -186,14 +186,14 @@ public class ProfileActivity extends HomeActivity implements IProfileView
             String s = (String) object;
             Picasso.get().load(s).into(mUserProfilePict);
         }
-        else if (field.equalsIgnoreCase("done"))
-        {
-            mLoadingIcon.setVisibility(View.INVISIBLE);
-        }
-        else if (field.equalsIgnoreCase("starting"))
-        {
-            mLoadingIcon.setVisibility(View.VISIBLE);
-        }
+//        else if (field.equalsIgnoreCase("done"))
+//        {
+//            mLoadingIcon.setVisibility(View.INVISIBLE);
+//        }
+//        else if (field.equalsIgnoreCase("starting"))
+//        {
+//            mLoadingIcon.setVisibility(View.VISIBLE);
+//        }
     }
 
     @Override

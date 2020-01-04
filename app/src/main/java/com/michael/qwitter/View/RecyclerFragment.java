@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
@@ -36,6 +37,8 @@ public class RecyclerFragment extends Fragment implements IView
     private String mQuery;
     private Button mLoadButton;
     private static IView mHomeView;
+    private ProgressBar mLoadingIcon;
+
 
     public RecyclerFragment()
     {
@@ -113,7 +116,7 @@ public class RecyclerFragment extends Fragment implements IView
         mRecyclerView.setHasFixedSize(true);
 
 
-
+        mLoadingIcon = view.findViewById(R.id.search_progress_bar);
         // use a linear layout manager
         mLayoutManager = new LinearLayoutManager(getActivity());
         mRecyclerView.setLayoutManager(mLayoutManager);
@@ -137,6 +140,7 @@ public class RecyclerFragment extends Fragment implements IView
         {
             System.out.println("Setting search adapter");
             mAdapter = new RecyclerAdapter(mUserAlias, mQuery, mFeedType, getContext(), this);
+            mLoadingIcon.setVisibility(View.VISIBLE);
             mLoadButton.setVisibility(View.INVISIBLE);
         }
         else
@@ -145,30 +149,6 @@ public class RecyclerFragment extends Fragment implements IView
         }
         mRecyclerView.setAdapter(mAdapter);
         System.out.println("Adapter is set");
-
-//        if(mAdapter.isEmpty())
-//        {
-//            mRecyclerView.setVisibility(View.INVISIBLE);
-//            mEmptyLayout.setVisibility(View.VISIBLE);
-//        }
-//        else
-//        {
-//            mRecyclerView.setVisibility(View.VISIBLE);
-//            mEmptyLayout.setVisibility(View.INVISIBLE);
-//        }
-
-//        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-//            @Override
-//            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
-//                super.onScrollStateChanged(recyclerView, newState);
-//
-//                if (!recyclerView.canScrollVertically(1)) {
-//                }
-//            }
-//        });
-
-
-
 
         return view;
     }
@@ -228,10 +208,12 @@ public class RecyclerFragment extends Fragment implements IView
         if (field.equalsIgnoreCase("done"))
         {
             mHomeView.updateField("done", null);
+            mLoadingIcon.setVisibility(View.INVISIBLE);
         }
         else if (field.equalsIgnoreCase("starting"))
         {
             mHomeView.updateField("starting", null);
+            mLoadingIcon.setVisibility(View.VISIBLE);
         }
     }
 

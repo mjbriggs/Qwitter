@@ -1,50 +1,34 @@
 package com.michael.qwitter.View;
 
 import android.content.Context;
-import android.content.Intent;
-import android.graphics.Color;
-import android.media.MediaPlayer;
-import android.net.Uri;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.text.TextPaint;
-import android.text.method.LinkMovementMethod;
-import android.text.style.ClickableSpan;
-import android.text.util.Linkify;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.MediaController;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.VideoView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.michael.qwitter.Model.ModelInterfaces.IAttachment;
-import com.michael.qwitter.Model.Status;
 import com.michael.qwitter.Presenter.FeedPresenter;
 import com.michael.qwitter.Presenter.FollowersPresenter;
 import com.michael.qwitter.Presenter.FollowingPresenter;
-import com.michael.qwitter.Presenter.PresenterInterfaces.IRegistrationPresenter;
+import com.michael.qwitter.Presenter.PresenterInterfaces.IRecyclerAdapterPresenter;
 import com.michael.qwitter.Presenter.PresenterInterfaces.RelationPresenter;
 import com.michael.qwitter.Presenter.PresenterInterfaces.StatusPresenter;
-import com.michael.qwitter.Presenter.RegistrationPresenter;
+import com.michael.qwitter.Presenter.RecyclerAdapterPresenter;
 import com.michael.qwitter.Presenter.SearchPresenter;
 import com.michael.qwitter.Presenter.StoryPresenter;
 import com.michael.qwitter.R;
 import com.michael.qwitter.Utils.Global;
 import com.michael.qwitter.Utils.Month;
-import com.michael.qwitter.Utils.StatusParser;
 import com.michael.qwitter.View.ViewInterfaces.IView;
 import com.squareup.picasso.MemoryPolicy;
 import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
 
-import java.util.ArrayList;
 import java.util.Date;
 
 public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.RecyclerHolder> implements IView
@@ -65,20 +49,22 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
     private RecyclerHolder mLocalHolder;
     private IView mFragmentView;
 
+    private IRecyclerAdapterPresenter mAdapterPresenter;
+
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
     // you provide access to all the views for a data item in a view holder
     public static class RecyclerHolder extends RecyclerView.ViewHolder {
         // each data item is just a string in this case
-        protected LinearLayout layoutView;
-        protected LinearLayout statusContainer;
-        protected TextView alias;
-        protected TextView name;
-        protected TextView statusTimeStamp;
-        protected TextView statusText;
-        protected ImageView profilePicture;
-        protected ImageView statusImage;
-        protected VideoView statusVideo;
+        public LinearLayout layoutView;
+        public LinearLayout statusContainer;
+        public TextView alias;
+        public TextView name;
+        public TextView statusTimeStamp;
+        public TextView statusText;
+        public ImageView profilePicture;
+        public ImageView statusImage;
+        public VideoView statusVideo;
 
         public RecyclerHolder(LinearLayout v) {
             super(v);
@@ -106,6 +92,8 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
         mFollowingPresenter = new FollowingPresenter(mUserAlias, this);
         mSearchPresenter = new SearchPresenter();
 
+        mAdapterPresenter = new RecyclerAdapterPresenter(this, mUserAlias);
+
     }
 
     public RecyclerAdapter(String username, String query, String type, Context context, IView fragment)
@@ -125,23 +113,27 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
         mStoryPresenter = new StoryPresenter(this);
         mFollowersPresenter = new FollowersPresenter(mUserAlias, this);
         mFollowingPresenter = new FollowingPresenter(mUserAlias, this);
-        mSearchPresenter = new SearchPresenter(mQuery, this);
+//        mSearchPresenter = new SearchPresenter(mQuery, this);
         System.out.println("In adapter query is " + mQuery + " and type is " + mFeedType);
+
+        mAdapterPresenter = new RecyclerAdapterPresenter(this, mUserAlias, mQuery);
     }
 
     public void update()
     {
+
         mFragmentView.updateField("starting", null);
-        if (mFeedType.equalsIgnoreCase(Global.FEED))
-            mFeedPresenter.update(mUserAlias);
-        else if (mFeedType.equalsIgnoreCase(Global.STORY))
-            mStoryPresenter.update(mUserAlias);
-        else if (mFeedType.equalsIgnoreCase(Global.FOLLOWERS))
+        mAdapterPresenter.update(mFeedType);
+//        if (mFeedType.equalsIgnoreCase(Global.FEED))
+//            mFeedPresenter.update(mUserAlias);
+//        else if (mFeedType.equalsIgnoreCase(Global.STORY))
+//            mStoryPresenter.update(mUserAlias);
+        if (mFeedType.equalsIgnoreCase(Global.FOLLOWERS))
             mFollowersPresenter.update(mUserAlias);
         else if (mFeedType.equalsIgnoreCase(Global.FOLLOWING))
             mFollowingPresenter.update(mUserAlias);
-        else if (mFeedType.equalsIgnoreCase("SEARCH"))
-            mSearchPresenter.update("");
+//        else if (mFeedType.equalsIgnoreCase("SEARCH"))
+//            mSearchPresenter.update("");
     }
 
 
@@ -180,6 +172,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
         mFeedType.equalsIgnoreCase("STORY") ||
         mFeedType.equalsIgnoreCase("SEARCH"))
         {
+            //Sets recycler holder fields that need to be edited in feed and story views
             holder.statusText = holder.layoutView.findViewById(R.id.status_text);
             holder.alias = holder.layoutView.findViewById(R.id.status_user_alias);
             holder.name = holder.layoutView.findViewById(R.id.status_name);
@@ -201,353 +194,237 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
                 @Override
                 public void onClick(View v)
                 {
-                    if(mFeedType.equalsIgnoreCase("FEED"))
-                    {
-//                        mFeedPresenter = new FeedPresenter();
-                        Intent intent = new Intent(mContext, SoloStatusActivity.class);
-                        intent.putExtra("TEXT", mFeedPresenter.getStatuses(mUserAlias).get(position).getText());
-                        intent.putExtra("USER_NAME", mFeedPresenter.getUserAlias(position));
-                        intent.putExtra("FULL_NAME", mFeedPresenter.getUserFullName());
-                        intent.putExtra("DATE", mFeedPresenter.getStatuses(mUserAlias).get(position).getTimestamp().split("-")[0]);
-                        intent.putExtra("profilePicture", mFeedPresenter.getUserProfilePic(position));
-                        IAttachment att = mFeedPresenter.getStatuses(mUserAlias).get(position).getAttachment();
-                        if (att != null)
-                        {
-                            intent.putExtra("attachment", att.getFilePath());
-                            intent.putExtra("type", att.format());
-                            if (att.format().equalsIgnoreCase("video"))
-                                return;
-                        }
-                        else
-                        {
-                            intent.putExtra("attachment", "none");
-                            intent.putExtra("type", "none");
-                        }
-
-                        mContext.startActivity(intent);
-                    }
-                    else if(mFeedType.equalsIgnoreCase("STORY"))
-                    {
-//                        mStoryPresenter = new StoryPresenter();
-                        Intent intent = new Intent(mContext, SoloStatusActivity.class);
-                        intent.putExtra("TEXT", mStoryPresenter.getStatuses(mUserAlias).get(position).getText());
-                        intent.putExtra("USER_NAME", mUserAlias);
-                        intent.putExtra("FULL_NAME", mStoryPresenter.getUserFullName());
-                        intent.putExtra("DATE", mStoryPresenter.getStatuses(mUserAlias).get(position).getTimestamp().split("-")[0]);
-                        intent.putExtra("profilePicture", mStoryPresenter.getUserProfilePic(position));
-
-                        IAttachment att = mStoryPresenter.getStatuses(mUserAlias).get(position).getAttachment();
-                        if (att != null)
-                        {
-                            intent.putExtra("attachment", att.getFilePath());
-                            intent.putExtra("type", att.format());
-                            if (att.format().equalsIgnoreCase("video"))
-                                return;
-                        }
-                        else
-                        {
-                            intent.putExtra("attachment", "none");
-                            intent.putExtra("type", "none");
-                        }
-
-                        mContext.startActivity(intent);
-                    }
+                    mAdapterPresenter.handleStatusClick(mContext, position, mFeedType);
                 }
             });
 
-            if(mFeedType.equalsIgnoreCase("FEED"))
-            {
-//                mFeedPresenter = new FeedPresenter();   //should base these on username not logged in username
-                Status stat = mFeedPresenter.getStatuses(mUserAlias).get(position);
-                holder.statusText.setText(mFeedPresenter.getStatuses(mUserAlias).get(position).getText());
-                holder.alias.setText("@" + mFeedPresenter.getUserAlias(position));
-                holder.name.setText(mFeedPresenter.getUserFullName());
-//                mStatusDate = mFeedPresenter.getStatuses(mUserAlias).get(position).getTimePosted();
-//                mStatusMonth = Month.values()[mStatusDate.getMonth()];
-                String date =stat.getTimestamp().split("-")[0];
-                holder.statusTimeStamp.setText(date);
-                Picasso.get().invalidate(mFeedPresenter.getUserProfilePic(position));
-                Picasso.get().load(mFeedPresenter.getUserProfilePic(position))
-                        .memoryPolicy(MemoryPolicy.NO_CACHE, MemoryPolicy.NO_STORE)
-                        .networkPolicy(NetworkPolicy.NO_CACHE, NetworkPolicy.NO_STORE)
-                        .into(holder.profilePicture);
+            mAdapterPresenter.bind(mFeedType, holder, position, mContext);
+//            if(mFeedType.equalsIgnoreCase("FEED"))
+//            {
+//                mAdapterPresenter.bind(mFeedType, holder, position, mContext);
+///*
+////                mFeedPresenter = new FeedPresenter();   //should base these on username not logged in username
+//                Status stat = mFeedPresenter.getStatuses(mUserAlias).get(position);
+//                holder.statusText.setText(mFeedPresenter.getStatuses(mUserAlias).get(position).getText());
+//                holder.alias.setText("@" + mFeedPresenter.getUserAlias(position));
+//                holder.name.setText(mFeedPresenter.getUserFullName());
+////                mStatusDate = mFeedPresenter.getStatuses(mUserAlias).get(position).getTimePosted();
+////                mStatusMonth = Month.values()[mStatusDate.getMonth()];
+//                String date =stat.getTimestamp().split("-")[0];
+//                holder.statusTimeStamp.setText(date);
+//                Glide.with(mContext).
+//                        load(mFeedPresenter.getUserProfilePic(position)).
+//                        diskCacheStrategy(DiskCacheStrategy.NONE).
+//                        skipMemoryCache(true).
+//                        into(holder.profilePicture);
+////                Picasso.get().invalidate(mFeedPresenter.getUserProfilePic(position));
+////                Picasso.get().load(mFeedPresenter.getUserProfilePic(position))
+////                        .memoryPolicy(MemoryPolicy.NO_CACHE, MemoryPolicy.NO_STORE)
+////                        .networkPolicy(NetworkPolicy.NO_CACHE, NetworkPolicy.NO_STORE)
+////                        .into(holder.profilePicture);
+//
+//                if(stat.getAttachment() != null)
+//                {
+//                    Log.i(Global.INFO, "status" + stat.getText() + "\n file path is " + stat.getAttachment().getFilePath());
+//                    if(stat.getAttachment().getFilePath() != null &&
+//                    stat.getAttachment().getFilePath().length() > 0 &&
+//                            stat.getAttachment().format().equalsIgnoreCase("image"))
+//                    {
+//                        ViewGroup.LayoutParams param = holder.layoutView.getLayoutParams();
+//                        // Changes the height and width to the specified *pixels*
+//                        param.height = 700;
+//                        holder.layoutView.setLayoutParams(param);
+//
+//                        Picasso.get().load(stat.getAttachment().getFilePath()).into(holder.statusImage);
+//                        holder.statusImage.setVisibility(View.VISIBLE);
+//                        holder.statusImage.setMinimumHeight(300);
+//                        holder.statusImage.setMinimumWidth(300);
+//                    }
+//                    else if (stat.getAttachment().format().equalsIgnoreCase("video"))
+//                    {
+//                        ViewGroup.LayoutParams param = holder.layoutView.getLayoutParams();
+//                        // Changes the height and width to the specified *pixels*
+//                        param.height = 700;
+//                        holder.layoutView.setLayoutParams(param);
+//                        final String link = stat.getAttachment().getFilePath();
+//
+//                        try {
+//                            // Start the MediaController
+//                            MediaController mediacontroller = new MediaController(mContext);
+//                            mediacontroller.setAnchorView(holder.statusVideo);
+//                            // Get the URL from String videoUrl
+//                            Uri video = Uri.parse(link);
+//                            holder.statusVideo.setMediaController(mediacontroller);
+//                            holder.statusVideo.setVideoURI(video);
+//
+//                        } catch (Exception e) {
+//                            Log.e("Error", e.getMessage(), e);
+//                        }
+//
+//                        holder.statusVideo.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+//                            public void onPrepared(MediaPlayer mp) {
+//                                holder.statusVideo.start();
+//                            }
+//                        });
+//
+//                        holder.statusVideo.setVisibility(View.VISIBLE);
+//                        holder.statusVideo.setMinimumHeight(300);
+//                        holder.statusVideo.setMinimumWidth(300);
+//
+//                        holder.statusContainer.setClickable(false);
+//                    }
+//                }
+//*/
+//
+//            }
+//            else if(mFeedType.equalsIgnoreCase("STORY"))
+//            {
+//                mAdapterPresenter.bind(mFeedType, holder, position, mContext);
+//////                mStoryPresenter = new StoryPresenter();
+////                Status stat = mStoryPresenter.getStatuses(mUserAlias).get(position);
+////                holder.statusText.setText(mStoryPresenter.getStatuses(mUserAlias).get(position).getText());
+////                holder.alias.setText("@" + mUserAlias);
+////                holder.name.setText(mStoryPresenter.getUserFullName());
+//////                mStatusDate = mStoryPresenter.getStatuses(mUserAlias).get(position).getTimePosted();
+//////                mStatusMonth = Month.values()[mStatusDate.getMonth()];
+////                String date = stat.getTimestamp().split("-")[0];
+////                holder.statusTimeStamp.setText(date);
+////
+////                Glide.with(mContext).
+////                        load(mStoryPresenter.getUserProfilePic(position)).
+////                        diskCacheStrategy(DiskCacheStrategy.NONE).
+////                        skipMemoryCache(true).
+////                        into(holder.profilePicture);
+//////                Picasso.get().invalidate(mStoryPresenter.getUserProfilePic(position));
+//////                Picasso.get().load(mStoryPresenter.getUserProfilePic(position))
+//////                        .memoryPolicy(MemoryPolicy.NO_CACHE, MemoryPolicy.NO_STORE)
+//////                        .networkPolicy(NetworkPolicy.NO_CACHE, NetworkPolicy.NO_STORE)
+//////                        .into(holder.profilePicture);
+////
+////                if(stat.getAttachment() != null)
+////                {
+////                    Log.i(Global.INFO, "status" + stat.getText() + "\n file path is " + stat.getAttachment().getFilePath());
+////                    if(stat.getAttachment().getFilePath() != null &&
+////                            stat.getAttachment().getFilePath().length() > 0  &&
+////                            stat.getAttachment().format().equalsIgnoreCase("image"))
+////                    {
+////                        ViewGroup.LayoutParams param = holder.layoutView.getLayoutParams();
+////                        // Changes the height and width to the specified *pixels*
+////                        param.height = 700;
+////                        holder.layoutView.setLayoutParams(param);
+////
+////                        Picasso.get().load(stat.getAttachment().getFilePath()).into(holder.statusImage);
+////                        holder.statusImage.setVisibility(View.VISIBLE);
+////                        holder.statusImage.setMinimumHeight(300);
+////                        holder.statusImage.setMinimumWidth(300);
+////                    }
+////                    else if ( stat.getAttachment().format().equalsIgnoreCase("video"))
+////                    {
+////                        ViewGroup.LayoutParams param = holder.layoutView.getLayoutParams();
+////                        // Changes the height and width to the specified *pixels*
+////                        param.height = 700;
+////                        holder.layoutView.setLayoutParams(param);
+////                        final String link = stat.getAttachment().getFilePath();
+////
+////                        try {
+////                            // Start the MediaController
+////                            MediaController mediacontroller = new MediaController(mContext);
+////                            mediacontroller.setAnchorView(holder.statusVideo);
+////                            // Get the URL from String videoUrl
+////                            Uri video = Uri.parse(link);
+////                            holder.statusVideo.setMediaController(mediacontroller);
+////                            holder.statusVideo.setVideoURI(video);
+////
+////                        } catch (Exception e) {
+////                            Log.e("Error", e.getMessage(), e);
+////                        }
+////
+////                        holder.statusVideo.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+////                            public void onPrepared(MediaPlayer mp) {
+////                                holder.statusVideo.start();
+////                            }
+////                        });
+////
+////                        holder.statusVideo.setVisibility(View.VISIBLE);
+////                        holder.statusVideo.setMinimumHeight(300);
+////                        holder.statusVideo.setMinimumWidth(300);
+////                    }
+////                }
+//            }
+//
+//            else if(mFeedType.equalsIgnoreCase("SEARCH"))
+//            {
+//                mAdapterPresenter.bind(mFeedType, holder, position, mContext);
+////                System.out.println("Search feed query is " + mQuery);
+////                Status stat = mSearchPresenter.getStatuses(mUserAlias).get(position);
+////                holder.statusText.setText(mSearchPresenter.getStatuses("").get(position).getText());
+////                holder.alias.setText("@" + mSearchPresenter.getStatus(position).getOwner());
+////                holder.name.setText(mSearchPresenter.getNameAt(position));
+//////                mStatusDate = mSearchPresenter.getStatus(position).getTimePosted();
+//////                mStatusMonth = Month.values()[mStatusDate.getMonth()];
+////                String date = mSearchPresenter.getStatus(position).getTimestamp().split("-")[0];
+////                holder.statusTimeStamp.setText(date);
+////                Picasso.get().invalidate(mSearchPresenter.getUserProfilePic(position));
+////                Picasso.get().load(mSearchPresenter.getUserProfilePic(position))
+////                        .memoryPolicy(MemoryPolicy.NO_CACHE, MemoryPolicy.NO_STORE)
+////                        .networkPolicy(NetworkPolicy.NO_CACHE, NetworkPolicy.NO_STORE)
+////                        .into(holder.profilePicture);
+////
+////
+////                if(stat.getAttachment() != null)
+////                {
+////                    Log.i(Global.INFO, "status" + stat.getText() + "\n file path is " + stat.getAttachment().getFilePath());
+////                    if(stat.getAttachment().getFilePath() != null &&
+////                            stat.getAttachment().getFilePath().length() > 0 &&
+////                            stat.getAttachment().format().equalsIgnoreCase("image"))
+////                    {
+////                        ViewGroup.LayoutParams param = holder.layoutView.getLayoutParams();
+////                        // Changes the height and width to the specified *pixels*
+////                        param.height = 700;
+////                        holder.layoutView.setLayoutParams(param);
+////
+////                        Picasso.get().load(stat.getAttachment().getFilePath()).into(holder.statusImage);
+////                        holder.statusImage.setVisibility(View.VISIBLE);
+////                        holder.statusImage.setMinimumHeight(300);
+////                        holder.statusImage.setMinimumWidth(300);
+////                    }
+////                    else if ( stat.getAttachment().format().equalsIgnoreCase("video"))
+////                    {
+////                        ViewGroup.LayoutParams param = holder.layoutView.getLayoutParams();
+////                        // Changes the height and width to the specified *pixels*
+////                        param.height = 700;
+////                        holder.layoutView.setLayoutParams(param);
+////                        final String link = stat.getAttachment().getFilePath();
+////
+////                        try {
+////                            // Start the MediaController
+////                            MediaController mediacontroller = new MediaController(mContext);
+////                            mediacontroller.setAnchorView(holder.statusVideo);
+////                            // Get the URL from String videoUrl
+////                            Uri video = Uri.parse(link);
+////                            holder.statusVideo.setMediaController(mediacontroller);
+////                            holder.statusVideo.setVideoURI(video);
+////
+////                        } catch (Exception e) {
+////                            Log.e("Error", e.getMessage(), e);
+////                        }
+////
+////                        holder.statusVideo.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+////                            public void onPrepared(MediaPlayer mp) {
+////                                holder.statusVideo.start();
+////                            }
+////                        });
+////
+////                        holder.statusVideo.setVisibility(View.VISIBLE);
+////                        holder.statusVideo.setMinimumHeight(300);
+////                        holder.statusVideo.setMinimumWidth(300);
+////
+////                        holder.statusContainer.setClickable(false);
+////                    }
+////                }
+//            }
 
-                if(stat.getAttachment() != null)
-                {
-                    Log.i(Global.INFO, "status" + stat.getText() + "\n file path is " + stat.getAttachment().getFilePath());
-                    if(stat.getAttachment().getFilePath() != null &&
-                    stat.getAttachment().getFilePath().length() > 0 &&
-                            stat.getAttachment().format().equalsIgnoreCase("image"))
-                    {
-                        ViewGroup.LayoutParams param = holder.layoutView.getLayoutParams();
-                        // Changes the height and width to the specified *pixels*
-                        param.height = 700;
-                        holder.layoutView.setLayoutParams(param);
 
-                        Picasso.get().load(stat.getAttachment().getFilePath()).into(holder.statusImage);
-                        holder.statusImage.setVisibility(View.VISIBLE);
-                        holder.statusImage.setMinimumHeight(300);
-                        holder.statusImage.setMinimumWidth(300);
-                    }
-                    else if ( stat.getAttachment().format().equalsIgnoreCase("video"))
-                    {
-                        ViewGroup.LayoutParams param = holder.layoutView.getLayoutParams();
-                        // Changes the height and width to the specified *pixels*
-                        param.height = 700;
-                        holder.layoutView.setLayoutParams(param);
-                        final String link = stat.getAttachment().getFilePath();
-
-                        try {
-                            // Start the MediaController
-                            MediaController mediacontroller = new MediaController(mContext);
-                            mediacontroller.setAnchorView(holder.statusVideo);
-                            // Get the URL from String videoUrl
-                            Uri video = Uri.parse(link);
-                            holder.statusVideo.setMediaController(mediacontroller);
-                            holder.statusVideo.setVideoURI(video);
-
-                        } catch (Exception e) {
-                            Log.e("Error", e.getMessage(), e);
-                        }
-
-                        holder.statusVideo.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                            public void onPrepared(MediaPlayer mp) {
-                                holder.statusVideo.start();
-                            }
-                        });
-
-                        holder.statusVideo.setVisibility(View.VISIBLE);
-                        holder.statusVideo.setMinimumHeight(300);
-                        holder.statusVideo.setMinimumWidth(300);
-
-                        holder.statusContainer.setClickable(false);
-                    }
-                }
-
-            }
-            else if(mFeedType.equalsIgnoreCase("STORY"))
-            {
-//                mStoryPresenter = new StoryPresenter();
-                Status stat = mStoryPresenter.getStatuses(mUserAlias).get(position);
-                holder.statusText.setText(mStoryPresenter.getStatuses(mUserAlias).get(position).getText());
-                holder.alias.setText("@" + mUserAlias);
-                holder.name.setText(mStoryPresenter.getUserFullName());
-//                mStatusDate = mStoryPresenter.getStatuses(mUserAlias).get(position).getTimePosted();
-//                mStatusMonth = Month.values()[mStatusDate.getMonth()];
-                String date = stat.getTimestamp().split("-")[0];
-                holder.statusTimeStamp.setText(date);
-                Picasso.get().invalidate(mStoryPresenter.getUserProfilePic(position));
-                Picasso.get().load(mStoryPresenter.getUserProfilePic(position))
-                        .memoryPolicy(MemoryPolicy.NO_CACHE, MemoryPolicy.NO_STORE)
-                        .networkPolicy(NetworkPolicy.NO_CACHE, NetworkPolicy.NO_STORE)
-                        .into(holder.profilePicture);
-
-                if(stat.getAttachment() != null)
-                {
-                    Log.i(Global.INFO, "status" + stat.getText() + "\n file path is " + stat.getAttachment().getFilePath());
-                    if(stat.getAttachment().getFilePath() != null &&
-                            stat.getAttachment().getFilePath().length() > 0  &&
-                            stat.getAttachment().format().equalsIgnoreCase("image"))
-                    {
-                        ViewGroup.LayoutParams param = holder.layoutView.getLayoutParams();
-                        // Changes the height and width to the specified *pixels*
-                        param.height = 700;
-                        holder.layoutView.setLayoutParams(param);
-
-                        Picasso.get().load(stat.getAttachment().getFilePath()).into(holder.statusImage);
-                        holder.statusImage.setVisibility(View.VISIBLE);
-                        holder.statusImage.setMinimumHeight(300);
-                        holder.statusImage.setMinimumWidth(300);
-                    }
-                    else if ( stat.getAttachment().format().equalsIgnoreCase("video"))
-                    {
-                        ViewGroup.LayoutParams param = holder.layoutView.getLayoutParams();
-                        // Changes the height and width to the specified *pixels*
-                        param.height = 700;
-                        holder.layoutView.setLayoutParams(param);
-                        final String link = stat.getAttachment().getFilePath();
-
-                        try {
-                            // Start the MediaController
-                            MediaController mediacontroller = new MediaController(mContext);
-                            mediacontroller.setAnchorView(holder.statusVideo);
-                            // Get the URL from String videoUrl
-                            Uri video = Uri.parse(link);
-                            holder.statusVideo.setMediaController(mediacontroller);
-                            holder.statusVideo.setVideoURI(video);
-
-                        } catch (Exception e) {
-                            Log.e("Error", e.getMessage(), e);
-                        }
-
-                        holder.statusVideo.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                            public void onPrepared(MediaPlayer mp) {
-                                holder.statusVideo.start();
-                            }
-                        });
-
-                        holder.statusVideo.setVisibility(View.VISIBLE);
-                        holder.statusVideo.setMinimumHeight(300);
-                        holder.statusVideo.setMinimumWidth(300);
-                    }
-                }
-            }
-
-            else if(mFeedType.equalsIgnoreCase("SEARCH"))
-            {
-                System.out.println("Search feed query is " + mQuery);
-                Status stat = mSearchPresenter.getStatuses(mUserAlias).get(position);
-                holder.statusText.setText(mSearchPresenter.getStatuses("").get(position).getText());
-                holder.alias.setText("@" + mSearchPresenter.getStatus(position).getOwner());
-                holder.name.setText(mSearchPresenter.getNameAt(position));
-//                mStatusDate = mSearchPresenter.getStatus(position).getTimePosted();
-//                mStatusMonth = Month.values()[mStatusDate.getMonth()];
-                String date = mSearchPresenter.getStatus(position).getTimestamp().split("-")[0];
-                holder.statusTimeStamp.setText(date);
-                Picasso.get().invalidate(mSearchPresenter.getUserProfilePic(position));
-                Picasso.get().load(mSearchPresenter.getUserProfilePic(position))
-                        .memoryPolicy(MemoryPolicy.NO_CACHE, MemoryPolicy.NO_STORE)
-                        .networkPolicy(NetworkPolicy.NO_CACHE, NetworkPolicy.NO_STORE)
-                        .into(holder.profilePicture);
-
-
-                if(stat.getAttachment() != null)
-                {
-                    Log.i(Global.INFO, "status" + stat.getText() + "\n file path is " + stat.getAttachment().getFilePath());
-                    if(stat.getAttachment().getFilePath() != null &&
-                            stat.getAttachment().getFilePath().length() > 0 &&
-                            stat.getAttachment().format().equalsIgnoreCase("image"))
-                    {
-                        ViewGroup.LayoutParams param = holder.layoutView.getLayoutParams();
-                        // Changes the height and width to the specified *pixels*
-                        param.height = 700;
-                        holder.layoutView.setLayoutParams(param);
-
-                        Picasso.get().load(stat.getAttachment().getFilePath()).into(holder.statusImage);
-                        holder.statusImage.setVisibility(View.VISIBLE);
-                        holder.statusImage.setMinimumHeight(300);
-                        holder.statusImage.setMinimumWidth(300);
-                    }
-                    else if ( stat.getAttachment().format().equalsIgnoreCase("video"))
-                    {
-                        ViewGroup.LayoutParams param = holder.layoutView.getLayoutParams();
-                        // Changes the height and width to the specified *pixels*
-                        param.height = 700;
-                        holder.layoutView.setLayoutParams(param);
-                        final String link = stat.getAttachment().getFilePath();
-
-                        try {
-                            // Start the MediaController
-                            MediaController mediacontroller = new MediaController(mContext);
-                            mediacontroller.setAnchorView(holder.statusVideo);
-                            // Get the URL from String videoUrl
-                            Uri video = Uri.parse(link);
-                            holder.statusVideo.setMediaController(mediacontroller);
-                            holder.statusVideo.setVideoURI(video);
-
-                        } catch (Exception e) {
-                            Log.e("Error", e.getMessage(), e);
-                        }
-
-                        holder.statusVideo.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                            public void onPrepared(MediaPlayer mp) {
-                                holder.statusVideo.start();
-                            }
-                        });
-
-                        holder.statusVideo.setVisibility(View.VISIBLE);
-                        holder.statusVideo.setMinimumHeight(300);
-                        holder.statusVideo.setMinimumWidth(300);
-
-                        holder.statusContainer.setClickable(false);
-                    }
-                }
-            }
-
-            Linkify.addLinks(holder.statusText, Linkify.WEB_URLS);
-
-            CharSequence sequence = holder.statusText.getText();
-            SpannableString strBuilder = new SpannableString(sequence);
-            ArrayList<Integer> hashtagIndices = StatusParser.parseForHashTags(holder.statusText.getText().toString());
-            ArrayList<Integer> mentionIndices = StatusParser.parseForMentions(holder.statusText.getText().toString());
-
-
-            System.out.println("hashtagIndices in " + holder.statusText.getText().toString() + " are " +
-                    hashtagIndices.toString());
-
-            for(int j = 0; j < hashtagIndices.size(); j+=2)
-            {
-                final int start = hashtagIndices.get(j);
-                final int end = hashtagIndices.get(j + 1);
-                final String str = holder.statusText.getText().toString().substring(start, end + 1);
-                System.out.println("start " + start + " , end " + end +
-                        " tag " + holder.statusText.getText().toString().substring(start, end + 1));
-
-                final int in = start;
-
-                ClickableSpan clickableSpan = new ClickableSpan() {
-                    @Override
-                    public void onClick(View textView) {
-                        Intent intent = new Intent(mContext, SearchActivity.class);
-                        intent.putExtra("USER_NAME", mUserAlias);
-                        intent.putExtra("TYPE", "SEARCH");
-                        intent.putExtra("QUERY", str);
-                        mContext.startActivity(intent);
-                    }
-                    @Override
-                    public void updateDrawState(TextPaint ds) {
-                        super.updateDrawState(ds);
-                        ds.setUnderlineText(false);
-                    }
-                };
-                strBuilder.setSpan(clickableSpan, start, end + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            }
-
-            for(int j = 0; j < mentionIndices.size(); j+=2)
-            {
-                final int start = mentionIndices.get(j);
-                final int end = mentionIndices.get(j + 1);
-                String notFinal;
-                if(end > start)
-                    notFinal = holder.statusText.getText().toString().substring(start + 1, end + 1);
-                else
-                    notFinal = "";
-
-                final String str = notFinal;
-
-                System.out.println("start " + start + " , end " + end +
-                        " mention " + str);
-
-                final int in = start;
-                final IRegistrationPresenter existenceChecker = new RegistrationPresenter();
-
-                ClickableSpan clickableSpan = new ClickableSpan() {
-                    @Override
-                    public void onClick(View textView) {
-                        Intent intent = new Intent(mContext, ProfileActivity.class);
-                        intent.putExtra("USER_NAME", str);
-                        intent.putExtra("LOGGED_USER", mUserAlias);
-                        if(existenceChecker.checkUserCompleted(str))
-                        {
-                            mContext.startActivity(intent);
-                        }
-                        else
-                        {
-                            Toast.makeText(mContext, "Nothing to show, user " + str + " does not exist", Toast.LENGTH_SHORT).show();
-                        }                        //Toast.makeText(mContext, "clicked " + in, Toast.LENGTH_SHORT).show();
-                    }
-                    @Override
-                    public void updateDrawState(TextPaint ds) {
-                        super.updateDrawState(ds);
-                        ds.setUnderlineText(false);
-                    }
-                };
-                strBuilder.setSpan(clickableSpan, start, end + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            }
-
-            holder.statusText.setText(strBuilder);
-            holder.statusText.setMovementMethod(LinkMovementMethod.getInstance());
-            holder.statusText.setHighlightColor(Color.TRANSPARENT);
 
         }
         else
@@ -633,14 +510,14 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
         {
 //            if(mFeedPresenter == null)
 //                mFeedPresenter = new FeedPresenter();
-            return mFeedPresenter.getStatuses(mUserAlias).size();
+            return mAdapterPresenter.listSize(mFeedType);
         }
         else if(mFeedType.equalsIgnoreCase("STORY"))
         {
 //            if(mStoryPresenter == null)
 //                mStoryPresenter = new StoryPresenter();
 
-            return mStoryPresenter.getStatuses(mUserAlias).size();
+            return mAdapterPresenter.listSize(mFeedType);
         }
         else if(mFeedType.equalsIgnoreCase("FOLLOWERS"))
         {
@@ -662,7 +539,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
 //            if(mSearchPresenter == null)
 //                mSearchPresenter = new SearchPresenter(mQuery);
 
-            return mSearchPresenter.getStatuses("").size();
+            return mAdapterPresenter.listSize(mFeedType);
         }
 
         return 0;
@@ -683,6 +560,10 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.Recycl
         {
             this.notifyDataSetChanged();
             mFragmentView.updateField("done", null);
+        }
+        else if(field.equalsIgnoreCase("starting"))
+        {
+            mFragmentView.updateField("starting", null);
         }
     }
 

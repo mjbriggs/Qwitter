@@ -14,4 +14,11 @@
     <string name="update_pic_text">Update Profile Picture</string>
     <string name="search_text">Search</string>
 
+    <string-array name="url_type">
+        <item>none</item>
+        <item>image</item>
+<!--        <item>gif</item>-->
+<!--        <item>mp4</item>-->
+    </string-array>
+
 </resources>
