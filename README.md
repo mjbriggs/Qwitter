@@ -16,12 +16,8 @@ To search for a status with a particular hashtag, a # symbol must precede the ta
 
 When entering login or sign up credentials, do not include an @ symbol.
 
-Emulator used for development was a Nexus 5, so the front end will be most ideal on that model. While I understand that this 
-is not ideal for "the real world",but at the end of the day this was for a class. Trust me, I know the front end could be much mroe flexible.
-
 Thank you for checking out my app! It was a lot of work to get this thing done in a semester, but it proved to be a rewarding 
-challenge. I was asked to keep my backend code private, so if you would like to see how I set up my AWS api, just ask!
-I appreciate all feedback, please feel free to contact me at mjbriggs@icloud.com with any comments, questions or concerns. 
+challenge. The emulator used for development was a Nexus 5, so the front end will be most ideal on that model. While I understand that this is not ideal for "the real world", this was for a class. Therefore, some design decisions (such as hardcoded widget locations) were made in the name of meeting academic deadlines. Trust me, I know the UI could be much more flexible and cleaner. I was asked to keep my backend code private, so if you would like to see how I set up my AWS api, just ask! I appreciate all feedback, please feel free to contact me at mjbriggs@icloud.com with any comments, questions or concerns. 
 
 
 
